@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro | KONNEKT</title>
+  <link rel="stylesheet" href="../../css/estilos.css">
+</head>
+<body>
+  <header class="encabezado">
+    <a class="marca" href="../../index.html">KONNEKT
+</a>
+    <nav aria-label="Navegación principal">
+        <a href="../../index.html">Inicio</a>
+        <a href="../publicas/catalogo.html">Catálogo</a>
+        <a href="../auth/login.html">Ingresar</a>
+        <a href="../auth/registro.html">Registro</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="pagina">
+      <div class="titulo">
+      <span class="etiqueta">REGISTRO</span>
+      <h1>Crear cuenta</h1>
+      <p class="muted">Todos los campos son obligatorios.</p>
+    </div>
+      <form id="registro" class="panel formulario" novalidate>
+        <div class="dos-columnas">
+          <label class="campo">Nombre<input name="nombre" required>
+</label>
+          <label class="campo">Apellidos<input name="apellidos" required>
+</label>
+          <label class="campo">Fecha de nacimiento<input name="nacimiento" type="date" required>
+</label>
+          <label class="campo">Género<select name="genero" required>
+<option value="">Selecciona</option>
+<option>Femenino</option>
+<option>Masculino</option>
+<option>Otro</option>
+</select>
+</label>
+        </div>
+        <label class="campo">Correo electrónico<input name="correo" type="email" required>
+</label>
+        <div class="dos-columnas">
+          <label class="campo">Contraseña<input name="password" type="password" required>
+</label>
+          <label class="campo">Confirmar contraseña<input name="confirmar" type="password" required>
+</label>
+        </div>
+        <small>8 caracteres, mayúscula, número y carácter especial.</small>
+        <div id="errores">
+</div>
+        <button class="boton">Crear cuenta</button>
+      </form>
+    </section>
+  </main>
+
+  <div id="mensaje" class="mensaje" role="status" aria-live="polite">
+</div>
+
+  <footer>Primer Avance - Programación Web de Capa Intermedia</footer>
+  <script src="../../js/validaciones.js">
+</script>
+</body>
+</html>
