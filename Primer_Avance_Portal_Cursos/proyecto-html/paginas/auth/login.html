@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ingresar | KONNEKT</title>
+  <link rel="stylesheet" href="../../css/estilos.css">
+</head>
+<body>
+  <header class="encabezado">
+    <a class="marca" href="../../index.html">KONNEKT
+</a>
+    <nav aria-label="Navegación principal">
+        <a href="../../index.html">Inicio</a>
+        <a href="../publicas/catalogo.html">Catálogo</a>
+        <a href="../auth/login.html">Ingresar</a>
+        <a href="../auth/registro.html">Registro</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="pagina">
+      <div class="titulo">
+      <span class="etiqueta">ACCESO</span>
+      <h1>Iniciar sesión</h1>
+      
+    </div>
+      <form class="panel formulario" data-destino="../estudiante/kardex.html">
+        <label class="campo">Correo electrónico<input type="email" required>
+</label>
+        <label class="campo">Contraseña<input type="password" required>
+</label>
+        <button class="boton">Ingresar</button>
+      </form>
+    </section>
+  </main>
+
+  <div id="mensaje" class="mensaje" role="status" aria-live="polite">
+</div>
+
+  <footer>Primer Avance - Programación Web de Capa Intermedia</footer>
+  <script src="../../js/formularios.js">
+</script>
+</body>
+</html>

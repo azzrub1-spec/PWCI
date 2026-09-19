@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curso y avance | KONNEKT</title>
+  <link rel="stylesheet" href="../../css/estilos.css">
+</head>
+<body>
+  <header class="encabezado">
+    <a class="marca" href="../../index.html">KONNEKT</a>
+    <nav aria-label="Navegación principal">
+      <a href="kardex.html">Kardex</a>
+      <a href="leccion.html">Curso</a>
+      <a href="mensajes.html">Mensajes</a>
+      <a href="perfil.html">Perfil</a>
+    </nav>
+  </header>
+  <main>
+    <section class="pagina">
+      <div class="titulo"><span class="etiqueta">CURSO</span><h1>Diseño UX desde cero</h1><p>Promedio: 4.9 de 5</p></div>
+      <div class="dos-columnas">
+        <article class="panel">
+          <h2>Niveles y contenido</h2>
+          <ol><li>Introducción - gratuito</li><li>Investigación</li><li>Prototipado</li></ol>
+          <div class="hero-visual">▶ Video obligatorio del nivel</div>
+          <p>Materiales: texto, guía PDF y enlace externo.</p>
+          <button class="boton" data-mensaje="Avance registrado.">Marcar nivel como completado</button>
+        </article>
+        <aside class="panel">
+          <h2>Comentarios</h2><p><strong>Ana:</strong> El contenido fue claro.</p>
+          <form class="formulario"><label class="campo">Calificación<select required><option value="">Selecciona</option><option>5</option><option>4</option></select></label><label class="campo">Comentario<textarea required></textarea></label><button class="boton">Publicar</button></form>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <div id="mensaje" class="mensaje" role="status" aria-live="polite"></div>
+  <footer>Primer Avance - Programación Web de Capa Intermedia</footer>
+  <script src="../../js/formularios.js"></script>
+</body>
+</html>

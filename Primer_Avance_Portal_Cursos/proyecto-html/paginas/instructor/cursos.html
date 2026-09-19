@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cursos del instructor | KONNEKT</title>
+  <link rel="stylesheet" href="../../css/estilos.css">
+</head>
+<body>
+  <header class="encabezado">
+    <a class="marca" href="../../index.html">KONNEKT</a>
+    <nav aria-label="Navegación principal">
+      <a href="cursos.html">Cursos</a>
+      <a href="ventas.html">Ventas</a>
+      <a href="../estudiante/mensajes.html">Mensajes</a>
+      <a href="../estudiante/perfil.html">Perfil</a>
+    </nav>
+  </header>
+  <main>
+    <section class="pagina">
+      <div class="titulo"><span class="etiqueta">INSTRUCTOR</span><h1>Administrar cursos y niveles</h1></div>
+      <div class="dos-columnas">
+        <article class="panel"><h2>Mis cursos</h2><p><strong>Diseño UX</strong> · Activo · 428 alumnos</p><p>12 niveles · $699.00</p><button class="boton-secundario" data-mensaje="Curso dado de baja de forma lógica.">Dar de baja</button><h3>Niveles</h3><ol><li>Bienvenida</li><li>Investigación</li><li>Prototipado</li></ol></article>
+        <form class="panel formulario"><h2>Registrar o editar curso</h2><label class="campo">Título<input required></label><label class="campo">Categoría<select required><option>Diseño</option><option>Programación</option></select></label><label class="campo">Descripción<textarea required></textarea></label><label class="campo">Costo<input type="number" min="0" required></label><label class="campo">Imagen<input type="file" accept="image/*" required></label><label class="campo">Video del nivel<input type="file" accept="video/*" required></label><button class="boton">Guardar</button></form>
+      </div>
+    </section>
+  </main>
+  <div id="mensaje" class="mensaje" role="status" aria-live="polite"></div>
+  <footer>Primer Avance - Programación Web de Capa Intermedia</footer>
+  <script src="../../js/formularios.js"></script>
+</body>
+</html>

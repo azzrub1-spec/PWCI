@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo | KONNEKT</title>
+  <link rel="stylesheet" href="../../css/estilos.css">
+</head>
+<body>
+  <header class="encabezado">
+    <a class="marca" href="../../index.html">KONNEKT
+</a>
+    <nav aria-label="Navegación principal">
+        <a href="../../index.html">Inicio</a>
+        <a href="../publicas/catalogo.html">Catálogo</a>
+        <a href="../auth/login.html">Ingresar</a>
+        <a href="../auth/registro.html">Registro</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="pagina">
+      <div class="titulo">
+      <span class="etiqueta">CATÁLOGO</span>
+      <h1>Encuentra tu próximo curso</h1>
+      
+    </div>
+      <div class="filtros">
+        <input id="buscar" type="search" placeholder="Buscar por título">
+        <select id="categoria">
+          <option value="todas">Todas las categorías</option>
+          <option value="diseño">Diseño</option>
+          <option value="programación">Programación</option>
+          <option value="creatividad">Creatividad</option>
+        </select>
+        <button class="boton" id="filtrar">Buscar</button>
+      </div>
+      <div class="rejilla" id="cursos">
+        <article class="tarjeta" data-titulo="diseño ux desde cero" data-categoria="diseño">
+          <span class="etiqueta">DISEÑO</span>
+<h2>Diseño UX desde cero</h2>
+<p>Mariana Solís</p>
+<p>★ 4.9 · $699.00</p>
+          <a class="boton-secundario" href="detalle-curso.html">Ver curso</a>
+        </article>
+        <article class="tarjeta" data-titulo="javascript moderno" data-categoria="programación">
+          <span class="etiqueta">PROGRAMACIÓN</span>
+<h2>JavaScript moderno</h2>
+<p>Diego Montemayor</p>
+<p>★ 4.8 · $849.00</p>
+          <a class="boton-secundario" href="detalle-curso.html">Ver curso</a>
+        </article>
+        <article class="tarjeta" data-titulo="fotografía para redes" data-categoria="creatividad">
+          <span class="etiqueta">CREATIVIDAD</span>
+<h2>Fotografía para redes</h2>
+<p>Sofía Luna</p>
+<p>★ 4.7 · Gratis</p>
+          <a class="boton-secundario" href="detalle-curso.html">Ver curso</a>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <div id="mensaje" class="mensaje" role="status" aria-live="polite">
+</div>
+
+  <footer>Primer Avance - Programación Web de Capa Intermedia</footer>
+  <script src="../../js/filtros.js">
+</script>
+</body>
+</html>
