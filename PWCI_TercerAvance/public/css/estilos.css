@@ -414,6 +414,33 @@ input[type="file"]::file-selector-button {
   object-fit: cover;
 }
 
+.lista-niveles {
+  display: grid;
+  gap: 20px;
+}
+
+.video-nivel {
+  width: 100%;
+  max-width: 760px;
+  max-height: 430px;
+  background: #102d3e;
+}
+
+.imagen-contenido-nivel {
+  width: min(100%, 640px);
+  max-height: 400px;
+  object-fit: contain;
+}
+
+.texto-nivel {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.opcion-material {
+  font-size: 14px;
+}
+
 .descripcion-tarjeta-curso {
   display: -webkit-box;
   overflow: hidden;

@@ -142,11 +142,17 @@ function renderMyCourses(courses) {
     price.textContent = `${currency.format(Number(course.costo))} MXN`;
     const status = document.createElement("p");
     status.textContent = Number(course.activo) === 1 ? "Activo" : "Dado de baja";
-    card.append(title, category, description, price, status);
+    const levelCount = document.createElement("p");
+    levelCount.textContent = `Niveles: ${Number(course.total_niveles || 0)}`;
+    card.append(title, category, description, price, status, levelCount);
 
     if (Number(course.activo) === 1) {
       const actions = document.createElement("div");
       actions.className = "acciones";
+      const levels = document.createElement("a");
+      levels.className = "boton-secundario";
+      levels.textContent = "Niveles";
+      levels.href = `${window.KONNEKT_CURSOS.publicUrl}/index.php?r=niveles&curso=${course.id_curso}`;
       const edit = document.createElement("button");
       edit.type = "button";
       edit.className = "boton-secundario";
@@ -159,7 +165,7 @@ function renderMyCourses(courses) {
       remove.addEventListener("click", () => deactivateCourse(course));
       edit.disabled = coursesBusy;
       remove.disabled = coursesBusy;
-      actions.append(edit, remove);
+      actions.append(edit, levels, remove);
       card.append(actions);
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Controllers\AuthController;
 use App\Controllers\CategoriaController;
 use App\Controllers\CursoController;
+use App\Controllers\NivelController;
 use App\Controllers\HomeController;
 use App\Controllers\PaymentController;
 use App\Controllers\ProfileController;
@@ -13,6 +14,8 @@ use App\Core\Router;
 use App\Models\Usuario;
 use App\Models\Categoria;
 use App\Models\Curso;
+use App\Models\Nivel;
+use App\Services\ArchivoNivel;
 use App\Middleware\AuthMiddleware;
 
 require dirname(__DIR__) . '/bootstrap.php';
@@ -28,6 +31,11 @@ $categorias = new CategoriaController(new Categoria($database->connection()));
 $cursos = new CursoController(
     new Curso($database->connection()),
     new Categoria($database->connection())
+);
+$niveles = new NivelController(
+    new Nivel($database->connection()),
+    new Curso($database->connection()),
+    new ArchivoNivel(require dirname(__DIR__) . '/config/archivos.php')
 );
 
 $router->get('inicio', [$home, 'home']);
@@ -47,6 +55,14 @@ $router->get('mis-cursos', static function () use ($cursos): void {
     $cursos->index();
 });
 $router->post('perfil', [$profile, 'update']);
+$router->get('niveles', static function () use ($niveles): void {
+    AuthMiddleware::requireRole(['instructor']);
+    $niveles->index();
+});
+$router->get('archivo-nivel', static function () use ($niveles): void {
+    AuthMiddleware::requireRole(['instructor']);
+    $niveles->file();
+});
 $router->get('pago', [$payment, 'show']);
 $router->post('paypal-crear', [$payment, 'create']);
 $router->get('paypal-capturar', [$payment, 'capture']);

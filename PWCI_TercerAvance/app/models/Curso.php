@@ -75,7 +75,8 @@ final class Curso implements CursoRepository
     public function byInstructor(int $instructorId): array
     {
         $statement = $this->database->prepare(
-            'SELECT c.*, ca.nombre AS categoria
+            'SELECT c.*, ca.nombre AS categoria,
+                    (SELECT COUNT(*) FROM nivel n WHERE n.id_curso = c.id_curso) AS total_niveles
              FROM curso c
              INNER JOIN categoria ca ON ca.id_categoria = c.id_categoria
              WHERE c.id_instructor = :instructor
