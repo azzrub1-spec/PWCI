@@ -11,6 +11,7 @@ use App\Controllers\HomeController;
 use App\Controllers\PaymentController;
 use App\Controllers\ProfileController;
 use App\Controllers\UsuarioAdminController;
+use App\Controllers\VentasController;
 use App\Core\Database;
 use App\Core\Router;
 use App\Core\View;
@@ -19,6 +20,7 @@ use App\Models\Categoria;
 use App\Models\Curso;
 use App\Models\Inscripcion;
 use App\Models\Nivel;
+use App\Models\Venta;
 use App\Services\ArchivoNivel;
 use App\Middleware\AuthMiddleware;
 
@@ -82,6 +84,8 @@ $router->get('categorias', static function () use ($categorias): void {
     $categorias->index();
 });
 $router->get('perfil', [$profile, 'show']);
+$ventas = new VentasController(new Venta($database->connection()), new Categoria($database->connection()));
+$router->get('ventas-instructor', [$ventas, 'index']);
 $router->get('mis-cursos', static function () use ($cursos): void {
     AuthMiddleware::requireRole(['instructor']);
     $cursos->index();

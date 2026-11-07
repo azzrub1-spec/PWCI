@@ -5,6 +5,9 @@ require dirname(__DIR__) . '/layout/header.php';
 <section class="pagina">
   <div class="titulo">
     <h1>Mis cursos</h1>
+    <div class="acciones">
+      <a class="boton-secundario" href="<?= BASE_URL ?>/index.php?r=ventas-instructor">Reporte de ventas</a>
+    </div>
   </div>
 
   <p id="estado-cursos" class="aviso" role="status" aria-live="polite"></p>
