@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Controllers\AuthController;
 use App\Controllers\CategoriaController;
 use App\Controllers\CursoController;
+use App\Controllers\EstudianteController;
 use App\Controllers\NivelController;
 use App\Controllers\HomeController;
 use App\Controllers\PaymentController;
@@ -14,6 +15,7 @@ use App\Core\Router;
 use App\Models\Usuario;
 use App\Models\Categoria;
 use App\Models\Curso;
+use App\Models\Inscripcion;
 use App\Models\Nivel;
 use App\Services\ArchivoNivel;
 use App\Middleware\AuthMiddleware;
@@ -37,9 +39,28 @@ $niveles = new NivelController(
     new Curso($database->connection()),
     new ArchivoNivel(require dirname(__DIR__) . '/config/archivos.php')
 );
+$estudiante = new EstudianteController(
+    new Inscripcion($database->connection()),
+    new Curso($database->connection()),
+    new Nivel($database->connection()),
+    new ArchivoNivel(require dirname(__DIR__) . '/config/archivos.php')
+);
 
 $router->get('inicio', [$home, 'home']);
 $router->get('catalogo', [$home, 'catalog']);
+$router->get('curso', [$estudiante, 'detail']);
+$router->get('mis-inscripciones', static function () use ($estudiante): void {
+    AuthMiddleware::requireRole(['estudiante']);
+    $estudiante->index();
+});
+$router->get('nivel-estudiante', static function () use ($estudiante): void {
+    AuthMiddleware::requireRole(['estudiante']);
+    $estudiante->lesson();
+});
+$router->get('archivo-estudiante', static function () use ($estudiante): void {
+    AuthMiddleware::requireRole(['estudiante']);
+    $estudiante->file();
+});
 $router->get('login', [$auth, 'loginForm']);
 $router->post('login', [$auth, 'login']);
 $router->get('registro', [$auth, 'registerForm']);

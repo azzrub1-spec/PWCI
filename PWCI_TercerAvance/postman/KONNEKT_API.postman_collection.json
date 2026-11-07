@@ -44,6 +44,22 @@
     {
       "key": "nivel_id",
       "value": ""
+    },
+    {
+      "key": "estudiante_email",
+      "value": ""
+    },
+    {
+      "key": "estudiante_password",
+      "value": ""
+    },
+    {
+      "key": "curso_inscripcion_id",
+      "value": ""
+    },
+    {
+      "key": "nivel_progreso_id",
+      "value": ""
     }
   ],
   "item": [
@@ -96,6 +112,32 @@
                 {
                   "key": "password",
                   "value": "{{admin_password}}"
+                }
+              ]
+            },
+            "url": "{{base_url}}/public/index.php?r=login"
+          }
+        },
+        {
+          "name": "Iniciar sesión como estudiante",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "{{estudiante_email}}"
+                },
+                {
+                  "key": "password",
+                  "value": "{{estudiante_password}}"
                 }
               ]
             },
@@ -787,6 +829,121 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Código 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Inscripción y progreso (estudiante)",
+      "description": "Inicia sesión como estudiante. Usa un curso activo con nivel gratuito y el ID de un nivel gratuito de ese curso. Ejecuta en orden.",
+      "item": [
+        {
+          "name": "Consultar mis inscripciones y obtener token - 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/index.php/inscripciones"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) pm.collectionVariables.set(\"csrf_token\", pm.response.json().csrf_token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Inscribirme al curso - 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/index.php/inscripciones/{{curso_inscripcion_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Marcar nivel completado - 200",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/index.php/progreso/{{nivel_progreso_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verificar progreso en Mis cursos - 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/index.php/inscripciones"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const curso = pm.response.json().cursos.find(c => Number(c.id_curso) === Number(pm.collectionVariables.get(\"curso_inscripcion_id\")));",
+                  "  pm.test(\"El curso tiene progreso\", () => pm.expect(Number(curso?.completados || 0)).to.be.above(0));",
+                  "}"
                 ]
               }
             }

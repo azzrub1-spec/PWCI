@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 use App\Controllers\CategoriaController;
 use App\Controllers\CursoController;
+use App\Controllers\EstudianteController;
 use App\Controllers\NivelController;
 use App\Core\Database;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\CorsMiddleware;
 use App\Models\Categoria;
 use App\Models\Curso;
+use App\Models\Inscripcion;
 use App\Models\Nivel;
 use App\Services\ArchivoNivel;
 
@@ -31,7 +33,8 @@ try {
     $parts = $path === '' ? [] : explode('/', $path);
     $resource = $parts[0] ?? '';
 
-    if (!in_array($resource, ['categorias', 'cursos', 'niveles'], true) || count($parts) > 2) {
+    $studentResource = in_array($resource, ['inscripciones', 'progreso'], true);
+    if ((!$studentResource && !in_array($resource, ['categorias', 'cursos', 'niveles'], true)) || count($parts) > 2) {
         respond(404, ['success' => false, 'message' => 'Recurso no encontrado.']);
     }
 
@@ -85,7 +88,23 @@ try {
         ]);
     }
 
+    if ($studentResource) {
+        AuthMiddleware::requireApiRole(['estudiante']);
+        if ($method !== 'GET') {
+            AuthMiddleware::requireCsrf();
+        }
+    }
+
     $database = new Database();
+    if ($studentResource) {
+        $controller = new EstudianteController(
+            new Inscripcion($database->connection()),
+            new Curso($database->connection()),
+            new Nivel($database->connection()),
+            new ArchivoNivel(require dirname(__DIR__) . '/config/archivos.php')
+        );
+        $controller->api($resource, $method, $id);
+    }
     $categories = new Categoria($database->connection());
 
     if ($resource === 'categorias') {

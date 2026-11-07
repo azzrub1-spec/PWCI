@@ -50,7 +50,14 @@ function showCourses(courses) {
     description.textContent = course.descripcion;
     const price = document.createElement("p");
     price.textContent = `${currency.format(Number(course.costo))} MXN`;
-    card.append(category, title, instructor, description, price);
+    const detail = document.createElement("a");
+    detail.className = "boton-secundario";
+    detail.href = `${window.KONNEKT_PUBLIC_URL}/index.php?r=curso&curso=${Number(course.id_curso)}`;
+    detail.textContent = "Ver curso";
+    const actions = document.createElement("div");
+    actions.className = "acciones";
+    actions.append(detail);
+    card.append(category, title, instructor, description, price, actions);
     container.append(card);
   }
   statusMessage.textContent = `${courses.length} curso(s) encontrado(s).`;
