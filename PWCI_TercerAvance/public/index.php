@@ -7,6 +7,7 @@ use App\Controllers\CategoriaController;
 use App\Controllers\CursoController;
 use App\Controllers\EstudianteController;
 use App\Controllers\NivelController;
+use App\Controllers\MensajeController;
 use App\Controllers\HomeController;
 use App\Controllers\PaymentController;
 use App\Controllers\ProfileController;
@@ -21,6 +22,7 @@ use App\Models\Categoria;
 use App\Models\Curso;
 use App\Models\Inscripcion;
 use App\Models\Nivel;
+use App\Models\Mensaje;
 use App\Models\Resena;
 use App\Models\Venta;
 use App\Services\ArchivoNivel;
@@ -61,6 +63,10 @@ $estudiante = new EstudianteController(
     $resenas
 );
 
+$mensajes = new MensajeController(new Mensaje($database->connection()));
+$router->get('mensajes', [$mensajes, 'index']);
+$router->get('conversacion', [$mensajes, 'show']);
+$router->post('mensaje-enviar', [$mensajes, 'send']);
 $router->post('resena-publicar', [$resenaController, 'publish']);
 $router->post('comentario-moderar', [$resenaController, 'moderate']);
 $router->get('inicio', [$home, 'home']);

@@ -22,6 +22,9 @@
           <a href="<?= BASE_URL ?>/index.php?r=categorias">Categorías</a>
           <a href="<?= BASE_URL ?>/index.php?r=usuarios-admin">Usuarios</a>
         <?php endif; ?>
+        <?php if (in_array($_SESSION['usuario']['rol'], ['estudiante', 'instructor'], true)): ?>
+          <a href="<?= BASE_URL ?>/index.php?r=mensajes">Mensajes</a>
+        <?php endif; ?>
         <?php if ($_SESSION['usuario']['rol'] === 'estudiante'): ?>
           <a href="<?= BASE_URL ?>/index.php?r=mis-inscripciones">Mis cursos</a>
           <a href="<?= BASE_URL ?>/index.php?r=pago">Pago PayPal</a>

@@ -24,6 +24,14 @@ require dirname(__DIR__) . '/layout/header.php';
     <a class="boton" href="<?= BASE_URL ?>/index.php?r=login">Ingresar para inscribirme</a>
   <?php endif; ?>
 
+  <?php if ($esEstudiante): ?>
+    <p>
+      <a class="boton-secundario" href="<?= BASE_URL ?>/index.php?r=conversacion&amp;curso=<?= $courseId ?>">
+        Preguntar al instructor
+      </a>
+    </p>
+  <?php endif; ?>
+
   <h2>Niveles</h2>
   <?php if ($niveles === []): ?>
     <p class="muted">El instructor todavía no ha agregado niveles.</p>
