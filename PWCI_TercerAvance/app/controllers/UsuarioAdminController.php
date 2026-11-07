@@ -27,6 +27,29 @@ final class UsuarioAdminController
         ]);
     }
 
+    public function report(): void
+    {
+        AuthMiddleware::requireRole(['administrador']);
+        $rol = $_GET['rol'] ?? 'instructor';
+        if (!in_array($rol, ['instructor', 'estudiante'], true)) {
+            http_response_code(400);
+            View::render('admin/reporte-usuarios', [
+                'rol' => 'instructor',
+                'filas' => [],
+                'error' => 'Elige instructores o estudiantes para consultar el reporte.',
+            ]);
+            return;
+        }
+
+        View::render('admin/reporte-usuarios', [
+            'rol' => $rol,
+            'filas' => $rol === 'instructor'
+                ? $this->usuarios->activeInstructorReport()
+                : $this->usuarios->activeStudentReport(),
+            'error' => null,
+        ]);
+    }
+
     public function updateStatus(): void
     {
         AuthMiddleware::requireRole(['administrador']);

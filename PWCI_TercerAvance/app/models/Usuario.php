@@ -84,6 +84,43 @@ final class Usuario
         return $statement->fetch() ?: null;
     }
 
+    public function activeInstructorReport(): array
+    {
+        return $this->database->query(
+            "SELECT u.email, u.nombre, u.apellidos, u.fecha_registro,
+                    (SELECT COUNT(*) FROM curso c WHERE c.id_instructor = u.id_usuario) AS cursos,
+                    COALESCE((SELECT SUM(p.monto) FROM curso c
+                              JOIN inscripcion i ON i.id_curso = c.id_curso
+                              JOIN pago p ON p.id_inscripcion = i.id_inscripcion
+                              WHERE c.id_instructor = u.id_usuario), 0) AS ganancias
+             FROM usuario u
+             WHERE u.activo = 1 AND u.rol = 'instructor'
+             ORDER BY u.apellidos, u.nombre, u.id_usuario"
+        )->fetchAll();
+    }
+
+    public function activeStudentReport(): array
+    {
+        return $this->database->query(
+            "SELECT u.email, u.nombre, u.apellidos, u.fecha_registro,
+                    (SELECT COUNT(*) FROM inscripcion i WHERE i.id_estudiante = u.id_usuario) AS cursos,
+                    (SELECT COUNT(*) FROM inscripcion i
+                     WHERE i.id_estudiante = u.id_usuario
+                       AND EXISTS (SELECT 1 FROM nivel n WHERE n.id_curso = i.id_curso)
+                       AND NOT EXISTS (
+                           SELECT 1 FROM nivel n WHERE n.id_curso = i.id_curso
+                             AND NOT EXISTS (
+                                 SELECT 1 FROM progreso_nivel p
+                                 WHERE p.id_inscripcion = i.id_inscripcion
+                                   AND p.id_nivel = n.id_nivel AND p.completado = 1
+                             )
+                       )) AS terminados
+             FROM usuario u
+             WHERE u.activo = 1 AND u.rol = 'estudiante'
+             ORDER BY u.apellidos, u.nombre, u.id_usuario"
+        )->fetchAll();
+    }
+
     public function setActive(int $id, int $administrator, bool $active): bool
     {
         $value = (int) $active;

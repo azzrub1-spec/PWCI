@@ -3,6 +3,9 @@
   <div class="titulo">
     <h1>Usuarios</h1>
     <p>Administra el acceso a las cuentas del portal.</p>
+    <div class="acciones">
+      <a class="boton-secundario" href="<?= BASE_URL ?>/index.php?r=reporte-usuarios">Reporte de usuarios</a>
+    </div>
   </div>
   <?php if ($aviso !== null): ?>
     <p class="aviso <?= $aviso['success'] ? 'exito' : 'error' ?>" role="status">

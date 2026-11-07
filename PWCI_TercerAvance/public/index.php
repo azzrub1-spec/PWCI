@@ -75,6 +75,7 @@ $router->get('registro', [$auth, 'registerForm']);
 $router->post('registro', [$auth, 'register']);
 $router->get('panel', [$home, 'panel']);
 $router->get('usuarios-admin', [$usuariosAdmin, 'index']);
+$router->get('reporte-usuarios', [$usuariosAdmin, 'report']);
 $router->post('estado-usuario', [$usuariosAdmin, 'updateStatus']);
 $router->get('categorias', static function () use ($categorias): void {
     AuthMiddleware::requireRole(['administrador']);
