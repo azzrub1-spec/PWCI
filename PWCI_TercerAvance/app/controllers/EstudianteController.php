@@ -10,6 +10,7 @@ use App\Core\View;
 use App\Middleware\AuthMiddleware;
 use App\Models\Inscripcion;
 use App\Services\ArchivoNivel;
+use DateTimeImmutable;
 
 final class EstudianteController
 {
@@ -45,7 +46,75 @@ final class EstudianteController
 
     public function index(): void
     {
-        View::render('estudiante/inscripciones', ['cursos' => $this->inscripciones->byStudent($this->studentId())]);
+        $cursos = $this->inscripciones->byStudent($this->studentId());
+        $categorias = [];
+        foreach ($cursos as $curso) {
+            $categorias[(int) $curso['id_categoria']] = $curso['categoria'];
+        }
+        asort($categorias, SORT_NATURAL | SORT_FLAG_CASE);
+
+        $filtros = [];
+        $errores = [];
+        foreach (['desde', 'hasta', 'categoria', 'terminados', 'activos'] as $campo) {
+            $valor = $_GET[$campo] ?? '';
+            if (!is_string($valor)) {
+                $errores[] = 'El filtro ' . $campo . ' no es válido.';
+                $valor = '';
+            }
+            $filtros[$campo] = trim($valor);
+        }
+
+        foreach (['desde', 'hasta'] as $campo) {
+            $valor = $filtros[$campo];
+            if ($valor !== '' && !$this->validKardexDate($valor)) {
+                $errores[] = 'La fecha «' . ucfirst($campo) . '» no es válida.';
+                $filtros[$campo] = '';
+            }
+        }
+        if ($filtros['desde'] !== '' && $filtros['hasta'] !== '' && $filtros['desde'] > $filtros['hasta']) {
+            $errores[] = 'La fecha «Desde» no puede ser posterior a «Hasta».';
+        }
+
+        $categoria = $filtros['categoria'];
+        if ($categoria !== '' && (!ctype_digit($categoria) || !isset($categorias[(int) $categoria]))) {
+            $errores[] = 'Selecciona una categoría de tus cursos.';
+            $filtros['categoria'] = '';
+        }
+
+        $resultados = [];
+        if ($errores === []) {
+            foreach ($cursos as $curso) {
+                $dia = substr($curso['fecha_inscripcion'], 0, 10);
+                $curso['terminado'] = (int) $curso['total'] > 0
+                    && (int) $curso['completados'] === (int) $curso['total'];
+                if (($filtros['desde'] !== '' && $dia < $filtros['desde'])
+                    || ($filtros['hasta'] !== '' && $dia > $filtros['hasta'])
+                    || ($filtros['categoria'] !== '' && (int) $curso['id_categoria'] !== (int) $filtros['categoria'])
+                    || ($filtros['terminados'] === '1' && !$curso['terminado'])
+                    || ($filtros['activos'] === '1' && !(bool) $curso['activo'])) {
+                    continue;
+                }
+                $resultados[] = $curso;
+            }
+        }
+
+        View::render('estudiante/inscripciones', [
+            'cursos' => $resultados,
+            'totalInscritos' => count($cursos),
+            'categorias' => $categorias,
+            'filtros' => $filtros,
+            'errores' => $errores,
+        ]);
+    }
+
+    private function validKardexDate(string $value): bool
+    {
+        if (!preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $value)) {
+            return false;
+        }
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+
+        return $date !== false && $date->format('Y-m-d') === $value && substr($value, 0, 4) !== '0000';
     }
 
     public function lesson(): void

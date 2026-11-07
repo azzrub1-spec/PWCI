@@ -17,7 +17,7 @@ final class Inscripcion
     {
         $query = $this->database->prepare(
             'SELECT i.id_curso, i.fecha_inscripcion, i.fecha_ultimo_acceso, i.fecha_terminacion,
-                    c.titulo, c.activo, ca.nombre AS categoria,
+                    c.titulo, c.activo, ca.id_categoria, ca.nombre AS categoria,
                     (SELECT COUNT(*) FROM nivel n WHERE n.id_curso = i.id_curso) AS total,
                     (SELECT COUNT(*) FROM progreso_nivel p
                      JOIN nivel n ON n.id_nivel = p.id_nivel
