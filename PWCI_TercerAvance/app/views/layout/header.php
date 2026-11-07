@@ -20,6 +20,7 @@
         <a href="<?= BASE_URL ?>/index.php?r=perfil">Perfil</a>
         <?php if ($_SESSION['usuario']['rol'] === 'administrador'): ?>
           <a href="<?= BASE_URL ?>/index.php?r=categorias">Categorías</a>
+          <a href="<?= BASE_URL ?>/index.php?r=usuarios-admin">Usuarios</a>
         <?php endif; ?>
         <?php if ($_SESSION['usuario']['rol'] === 'estudiante'): ?>
           <a href="<?= BASE_URL ?>/index.php?r=mis-inscripciones">Mis cursos</a>

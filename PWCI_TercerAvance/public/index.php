@@ -10,8 +10,10 @@ use App\Controllers\NivelController;
 use App\Controllers\HomeController;
 use App\Controllers\PaymentController;
 use App\Controllers\ProfileController;
+use App\Controllers\UsuarioAdminController;
 use App\Core\Database;
 use App\Core\Router;
+use App\Core\View;
 use App\Models\Usuario;
 use App\Models\Categoria;
 use App\Models\Curso;
@@ -24,6 +26,12 @@ require dirname(__DIR__) . '/bootstrap.php';
 
 $database = new Database();
 $usuarios = new Usuario($database->connection());
+if (AuthMiddleware::invalidateInactiveSession($usuarios)) {
+    http_response_code(403);
+    View::render('auth/login', ['error' => 'La cuenta está bloqueada. Solicita ayuda al administrador.']);
+    exit;
+}
+$usuariosAdmin = new UsuarioAdminController($usuarios);
 $auth = new AuthController($usuarios);
 $home = new HomeController();
 $profile = new ProfileController($usuarios);
@@ -66,6 +74,8 @@ $router->post('login', [$auth, 'login']);
 $router->get('registro', [$auth, 'registerForm']);
 $router->post('registro', [$auth, 'register']);
 $router->get('panel', [$home, 'panel']);
+$router->get('usuarios-admin', [$usuariosAdmin, 'index']);
+$router->post('estado-usuario', [$usuariosAdmin, 'updateStatus']);
 $router->get('categorias', static function () use ($categorias): void {
     AuthMiddleware::requireRole(['administrador']);
     $categorias->index();

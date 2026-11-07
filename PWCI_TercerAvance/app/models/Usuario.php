@@ -66,6 +66,44 @@ final class Usuario
         $statement->execute(['id' => $id]);
     }
 
+    public function listForAdministration(): array
+    {
+        return $this->database->query(
+            'SELECT id_usuario, nombre, apellidos, email, rol, activo
+             FROM usuario ORDER BY apellidos, nombre, id_usuario'
+        )->fetchAll();
+    }
+
+    public function accessState(int $id): ?array
+    {
+        $statement = $this->database->prepare(
+            'SELECT rol, activo FROM usuario WHERE id_usuario = :id'
+        );
+        $statement->execute(['id' => $id]);
+
+        return $statement->fetch() ?: null;
+    }
+
+    public function setActive(int $id, int $administrator, bool $active): bool
+    {
+        $value = (int) $active;
+        $statement = $this->database->prepare(
+            'UPDATE usuario
+             SET activo = :nuevo,
+                 intentos_fallidos = CASE WHEN :reiniciar = 1 THEN 0 ELSE intentos_fallidos END
+             WHERE id_usuario = :id AND id_usuario <> :administrador AND activo <> :estado'
+        );
+        $statement->execute([
+            'nuevo' => $value,
+            'reiniciar' => $value,
+            'id' => $id,
+            'administrador' => $administrator,
+            'estado' => $value,
+        ]);
+
+        return $statement->rowCount() === 1;
+    }
+
     public function findById(int $id): ?array
     {
         $statement = $this->database->prepare(

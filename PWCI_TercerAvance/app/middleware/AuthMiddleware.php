@@ -4,8 +4,27 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
+use App\Models\Usuario;
+
 final class AuthMiddleware
 {
+    public static function invalidateInactiveSession(Usuario $usuarios): bool
+    {
+        if (empty($_SESSION['usuario'])) {
+            return false;
+        }
+
+        $state = $usuarios->accessState((int) $_SESSION['usuario']['id']);
+        if ($state !== null && (bool) $state['activo']) {
+            $_SESSION['usuario']['rol'] = $state['rol'];
+            return false;
+        }
+
+        $_SESSION = [];
+        session_regenerate_id(true);
+        return true;
+    }
+
     public static function csrfToken(): string
     {
         if (empty($_SESSION['csrf_token'])) {

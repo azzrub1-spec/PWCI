@@ -13,6 +13,7 @@ use App\Models\Categoria;
 use App\Models\Curso;
 use App\Models\Inscripcion;
 use App\Models\Nivel;
+use App\Models\Usuario;
 use App\Services\ArchivoNivel;
 
 require dirname(__DIR__) . '/bootstrap.php';
@@ -44,6 +45,11 @@ try {
 
     if ($id === false) {
         respond(400, ['success' => false, 'message' => 'El identificador no es válido.']);
+    }
+
+    $database = new Database();
+    if (AuthMiddleware::invalidateInactiveSession(new Usuario($database->connection()))) {
+        respond(403, ['success' => false, 'message' => 'La cuenta está bloqueada.']);
     }
 
     // PHP recibe los archivos de formularios multipart por POST.
@@ -95,7 +101,6 @@ try {
         }
     }
 
-    $database = new Database();
     if ($studentResource) {
         $controller = new EstudianteController(
             new Inscripcion($database->connection()),
