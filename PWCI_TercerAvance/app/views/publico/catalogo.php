@@ -17,6 +17,7 @@
 <script>
   window.KONNEKT_API = '<?= dirname(BASE_URL) ?>/api/index.php/cursos';
   window.KONNEKT_CATEGORIAS_API = '<?= dirname(BASE_URL) ?>/api/index.php/categorias';
+  window.KONNEKT_PUBLIC_URL = '<?= BASE_URL ?>';
 </script>
 <script src="<?= BASE_URL ?>/js/catalogo-api.js"></script>
 <?php require dirname(__DIR__) . '/layout/footer.php'; ?>

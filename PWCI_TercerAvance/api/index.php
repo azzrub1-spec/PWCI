@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Core\Database;
 use App\Controllers\CategoriaController;
+use App\Controllers\CursoController;
+use App\Core\Database;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\CorsMiddleware;
 use App\Models\Categoria;
@@ -21,115 +22,59 @@ function respond(int $status, array $body): never
     exit;
 }
 
-function requestBody(): array
-{
-    $body = json_decode((string) file_get_contents('php://input'), true);
-
-    if (!is_array($body)) {
-        respond(400, [
-            'success' => false,
-            'message' => 'El cuerpo debe contener JSON válido.',
-        ]);
-    }
-
-    return $body;
-}
-
 try {
-    $database = new Database();
-    $cursos = new Curso($database->connection());
     $method = $_SERVER['REQUEST_METHOD'];
     $path = trim((string) ($_SERVER['PATH_INFO'] ?? ''), '/');
     $parts = $path === '' ? [] : explode('/', $path);
+    $resource = $parts[0] ?? '';
 
-    if (($parts[0] ?? '') === 'categorias') {
-        if (count($parts) > 2) {
-            respond(404, ['success' => false, 'message' => 'Ruta no encontrada.']);
-        }
-
-        $categoryId = isset($parts[1])
-            ? filter_var($parts[1], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])
-            : null;
-
-        if ($categoryId === false) {
-            respond(400, ['success' => false, 'message' => 'El identificador no es válido.']);
-        }
-
-        if ($method !== 'GET') {
-            AuthMiddleware::requireApiRole(['administrador']);
-            AuthMiddleware::requireCsrf();
-        }
-
-        $controller = new CategoriaController(new Categoria($database->connection()));
-        $controller->api($method, $categoryId);
-    }
-
-    if (($parts[0] ?? '') !== 'cursos') {
+    if (!in_array($resource, ['categorias', 'cursos'], true) || count($parts) > 2) {
         respond(404, ['success' => false, 'message' => 'Recurso no encontrado.']);
     }
 
-    $id = isset($parts[1]) && ctype_digit($parts[1]) ? (int) $parts[1] : null;
+    $id = isset($parts[1])
+        ? filter_var($parts[1], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]])
+        : null;
 
-    if (isset($parts[1]) && $id === null) {
+    if ($id === false) {
         respond(400, ['success' => false, 'message' => 'El identificador no es válido.']);
     }
 
-    if ($method === 'GET' && $id === null) {
-        $items = $cursos->active([
-            'titulo' => trim((string) ($_GET['titulo'] ?? '')),
-            'categoria' => $_GET['categoria'] ?? null,
-        ]);
-        respond(200, ['success' => true, 'total' => count($items), 'cursos' => $items]);
+    // PHP recibe los archivos de formularios multipart por POST.
+    // En edición, _method=PUT permite conservar la imagen o reemplazarla.
+    if ($resource === 'cursos' && $method === 'POST' && isset($_POST['_method'])) {
+        if ($_POST['_method'] !== 'PUT') {
+            respond(400, ['success' => false, 'message' => 'Método de formulario no válido.']);
+        }
+        $method = 'PUT';
     }
 
-    if ($method === 'GET' && $id !== null) {
-        $item = $cursos->findActive($id);
-        if ($item === null) {
-            respond(404, ['success' => false, 'message' => 'Curso no encontrado.']);
-        }
-        respond(200, ['success' => true, 'curso' => $item]);
+    $owned = $resource === 'cursos' && ($_GET['propios'] ?? '') === '1';
+
+    if ($resource === 'categorias' && $method !== 'GET') {
+        AuthMiddleware::requireApiRole(['administrador']);
+        AuthMiddleware::requireCsrf();
     }
 
-    if ($method === 'POST' && $id === null) {
-        if (empty($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'instructor') {
-            respond(401, ['success' => false, 'message' => 'Se requiere una sesión de instructor.']);
+    if ($resource === 'cursos') {
+        if ($owned || $method !== 'GET') {
+            AuthMiddleware::requireApiRole(['instructor']);
         }
-
-        $body = requestBody();
-        $title = trim((string) ($body['titulo'] ?? ''));
-        $description = trim((string) ($body['descripcion'] ?? ''));
-        $category = filter_var($body['categoria_id'] ?? null, FILTER_VALIDATE_INT);
-        $cost = filter_var($body['costo'] ?? null, FILTER_VALIDATE_FLOAT);
-
-        if ($title === '' || $description === '' || $category === false
-            || $category < 1
-            || $cost === false || $cost < 0) {
-            respond(400, ['success' => false, 'message' => 'Los datos del curso no son válidos.']);
+        if ($method !== 'GET') {
+            AuthMiddleware::requireCsrf();
         }
-
-        $newId = $cursos->create([
-            'id_instructor' => $_SESSION['usuario']['id'],
-            'id_categoria' => $category,
-            'titulo' => $title,
-            'descripcion' => $description,
-            'imagen' => trim((string) ($body['imagen'] ?? '')),
-            'costo' => $cost,
-        ]);
-        respond(201, ['success' => true, 'id' => $newId, 'message' => 'Curso creado correctamente.']);
     }
 
-    if ($method === 'DELETE' && $id !== null) {
-        if (empty($_SESSION['usuario']) || $_SESSION['usuario']['rol'] !== 'instructor') {
-            respond(401, ['success' => false, 'message' => 'Se requiere una sesión de instructor.']);
-        }
+    $database = new Database();
+    $categories = new Categoria($database->connection());
 
-        if (!$cursos->softDelete($id, (int) $_SESSION['usuario']['id'])) {
-            respond(404, ['success' => false, 'message' => 'Curso no encontrado.']);
-        }
-        respond(200, ['success' => true, 'id' => $id, 'message' => 'Curso dado de baja.']);
+    if ($resource === 'categorias') {
+        $controller = new CategoriaController($categories);
+        $controller->api($method, $id);
     }
 
-    respond(404, ['success' => false, 'message' => 'Ruta o método no disponible.']);
+    $controller = new CursoController(new Curso($database->connection()), $categories);
+    $controller->api($method, $id, $owned);
 } catch (Throwable $exception) {
     respond(500, [
         'success' => false,

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "KONNEKT API",
-    "description": "API de cursos del segundo avance y gestión de categorías del tercer avance. Configura las credenciales solo para uso local.",
+    "description": "API de cursos y categorías. El alta de cursos usa form-data con imagen JPG/PNG; las escrituras requieren sesión del rol indicado y X-CSRF-Token.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -100,6 +100,89 @@
       "name": "Cursos",
       "item": [
         {
+          "name": "Consultar mis cursos y obtener token - 200",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/index.php/cursos?propios=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', function () { pm.response.to.have.status(200); });",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set('csrf_token', pm.response.json().csrf_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar curso (elige una imagen) - 201",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "titulo",
+                  "value": "Curso de prueba KONNEKT",
+                  "type": "text"
+                },
+                {
+                  "key": "descripcion",
+                  "value": "Curso práctico del instructor.",
+                  "type": "text"
+                },
+                {
+                  "key": "categoria_id",
+                  "value": "2",
+                  "type": "text"
+                },
+                {
+                  "key": "costo",
+                  "value": "199.90",
+                  "type": "text"
+                },
+                {
+                  "key": "imagen",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": "{{base_url}}/api/index.php/cursos"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Código 201', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('curso_id', pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Consultar cursos - 200",
           "request": {
             "method": "GET",
@@ -163,38 +246,6 @@
           ]
         },
         {
-          "name": "Registrar curso - 201",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"titulo\": \"API REST con PHP\",\n  \"descripcion\": \"Curso práctico\",\n  \"categoria_id\": 2,\n  \"costo\": 0,\n  \"imagen\": \"\"\n}"
-            },
-            "url": "{{base_url}}/api/index.php/cursos"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Código 201', function () {",
-                  "  pm.response.to.have.status(201);",
-                  "});",
-                  "if (pm.response.code === 201) {",
-                  "  pm.collectionVariables.set('curso_id', pm.response.json().id);",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
           "name": "Registrar curso inválido - 400",
           "request": {
             "method": "POST",
@@ -202,6 +253,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
               }
             ],
             "body": {
@@ -224,6 +279,38 @@
           ]
         },
         {
+          "name": "Editar mi curso conservando imagen - 200",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/index.php/cursos/{{curso_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Curso editado KONNEKT\",\n  \"descripcion\": \"Descripción actualizada.\",\n  \"categoria_id\": 2,\n  \"costo\": \"249.50\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Dar de baja curso - 200",
           "request": {
             "method": "DELETE",
@@ -231,10 +318,38 @@
               {
                 "key": "Accept",
                 "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-Token",
+                "value": "{{csrf_token}}"
               }
             ],
             "url": "{{base_url}}/api/index.php/cursos/{{curso_id}}"
           }
+        },
+        {
+          "name": "Verificar baja en detalle público - 404",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/index.php/cursos/{{curso_id}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Código 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ]
         }
       ]
     },

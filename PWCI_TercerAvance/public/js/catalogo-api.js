@@ -6,27 +6,53 @@ const searchInput = document.querySelector("#buscar");
 const searchButton = document.querySelector("#filtrar");
 const categorySelect = document.querySelector("#categoria");
 
-function escapeHtml(value) {
-  const element = document.createElement("div");
-  element.textContent = value;
-  return element.innerHTML;
-}
-
 function showCourses(courses) {
+  container.replaceChildren();
+
   if (courses.length === 0) {
-    container.innerHTML = "";
     statusMessage.textContent = "No se encontraron cursos activos.";
     return;
   }
 
-  container.innerHTML = courses.map((course) => `
-    <article class="tarjeta">
-      <span class="etiqueta">${escapeHtml(course.categoria)}</span>
-      <h2>${escapeHtml(course.titulo)}</h2>
-      <p>${escapeHtml(course.instructor)}</p>
-      <p>$${Number(course.costo).toFixed(2)}</p>
-    </article>
-  `).join("");
+  const currency = new Intl.NumberFormat("es-MX", {
+    style: "currency", currency: "MXN", minimumFractionDigits: 2,
+  });
+
+  for (const course of courses) {
+    const card = document.createElement("article");
+    card.className = "tarjeta";
+    let imagePath = "";
+
+    if (/^uploads\/cursos\/[a-f0-9]{32}\.(jpg|png)$/.test(course.imagen || "")) {
+      imagePath = `${window.KONNEKT_PUBLIC_URL}/${course.imagen}`;
+    } else if (/^https?:\/\//i.test(course.imagen || "")) {
+      imagePath = course.imagen;
+    }
+
+    if (imagePath) {
+      const image = document.createElement("img");
+      image.className = "imagen-tarjeta-curso";
+      image.src = imagePath;
+      image.alt = course.titulo;
+      image.loading = "lazy";
+      card.append(image);
+    }
+
+    const category = document.createElement("span");
+    category.className = "etiqueta";
+    category.textContent = course.categoria;
+    const title = document.createElement("h2");
+    title.textContent = course.titulo;
+    const instructor = document.createElement("p");
+    instructor.textContent = course.instructor;
+    const description = document.createElement("p");
+    description.className = "descripcion-tarjeta-curso";
+    description.textContent = course.descripcion;
+    const price = document.createElement("p");
+    price.textContent = `${currency.format(Number(course.costo))} MXN`;
+    card.append(category, title, instructor, description, price);
+    container.append(card);
+  }
   statusMessage.textContent = `${courses.length} curso(s) encontrado(s).`;
 }
 

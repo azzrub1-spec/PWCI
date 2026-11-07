@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Contracts\CursoRepository;
 use PDO;
 
-final class Curso
+final class Curso implements CursoRepository
 {
     public function __construct(private PDO $database)
     {
@@ -71,11 +72,55 @@ final class Curso
         return (int) $this->database->lastInsertId();
     }
 
+    public function byInstructor(int $instructorId): array
+    {
+        $statement = $this->database->prepare(
+            'SELECT c.*, ca.nombre AS categoria
+             FROM curso c
+             INNER JOIN categoria ca ON ca.id_categoria = c.id_categoria
+             WHERE c.id_instructor = :instructor
+             ORDER BY c.fecha_publicacion DESC, c.id_curso DESC'
+        );
+        $statement->execute(['instructor' => $instructorId]);
+
+        return $statement->fetchAll();
+    }
+
+    public function findOwned(int $id, int $instructorId): ?array
+    {
+        $statement = $this->database->prepare(
+            'SELECT * FROM curso
+             WHERE id_curso = :id AND id_instructor = :instructor'
+        );
+        $statement->execute(['id' => $id, 'instructor' => $instructorId]);
+
+        return $statement->fetch() ?: null;
+    }
+
+    public function update(int $id, int $instructorId, array $data): void
+    {
+        $statement = $this->database->prepare(
+            'UPDATE curso
+             SET titulo = :titulo, descripcion = :descripcion,
+                 id_categoria = :id_categoria, costo = :costo, imagen = :imagen
+             WHERE id_curso = :id AND id_instructor = :instructor AND activo = 1'
+        );
+        $statement->execute([
+            'id' => $id,
+            'instructor' => $instructorId,
+            'titulo' => $data['titulo'],
+            'descripcion' => $data['descripcion'],
+            'id_categoria' => $data['id_categoria'],
+            'costo' => $data['costo'],
+            'imagen' => $data['imagen'],
+        ]);
+    }
+
     public function softDelete(int $id, int $instructorId): bool
     {
         $statement = $this->database->prepare(
             'UPDATE curso SET activo = 0
-             WHERE id_curso = :id AND id_instructor = :instructor'
+             WHERE id_curso = :id AND id_instructor = :instructor AND activo = 1'
         );
         $statement->execute([
             'id' => $id,

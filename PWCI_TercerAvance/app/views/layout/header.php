@@ -24,6 +24,9 @@
         <?php if ($_SESSION['usuario']['rol'] === 'estudiante'): ?>
           <a href="<?= BASE_URL ?>/index.php?r=pago">Pago PayPal</a>
         <?php endif; ?>
+        <?php if ($_SESSION['usuario']['rol'] === 'instructor'): ?>
+          <a href="<?= BASE_URL ?>/index.php?r=mis-cursos">Mis cursos</a>
+        <?php endif; ?>
       <?php endif; ?>
     </nav>
   </header>
