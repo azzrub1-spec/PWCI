@@ -13,6 +13,7 @@ use App\Models\Categoria;
 use App\Models\Curso;
 use App\Models\Inscripcion;
 use App\Models\Nivel;
+use App\Models\Resena;
 use App\Models\Usuario;
 use App\Services\ArchivoNivel;
 
@@ -106,7 +107,8 @@ try {
             new Inscripcion($database->connection()),
             new Curso($database->connection()),
             new Nivel($database->connection()),
-            new ArchivoNivel(require dirname(__DIR__) . '/config/archivos.php')
+            new ArchivoNivel(require dirname(__DIR__) . '/config/archivos.php'),
+            new Resena($database->connection())
         );
         $controller->api($resource, $method, $id);
     }

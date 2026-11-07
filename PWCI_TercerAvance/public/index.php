@@ -10,6 +10,7 @@ use App\Controllers\NivelController;
 use App\Controllers\HomeController;
 use App\Controllers\PaymentController;
 use App\Controllers\ProfileController;
+use App\Controllers\ResenaController;
 use App\Controllers\UsuarioAdminController;
 use App\Controllers\VentasController;
 use App\Core\Database;
@@ -20,6 +21,7 @@ use App\Models\Categoria;
 use App\Models\Curso;
 use App\Models\Inscripcion;
 use App\Models\Nivel;
+use App\Models\Resena;
 use App\Models\Venta;
 use App\Services\ArchivoNivel;
 use App\Middleware\AuthMiddleware;
@@ -49,13 +51,18 @@ $niveles = new NivelController(
     new Curso($database->connection()),
     new ArchivoNivel(require dirname(__DIR__) . '/config/archivos.php')
 );
+$resenas = new Resena($database->connection());
+$resenaController = new ResenaController($resenas);
 $estudiante = new EstudianteController(
     new Inscripcion($database->connection()),
     new Curso($database->connection()),
     new Nivel($database->connection()),
-    new ArchivoNivel(require dirname(__DIR__) . '/config/archivos.php')
+    new ArchivoNivel(require dirname(__DIR__) . '/config/archivos.php'),
+    $resenas
 );
 
+$router->post('resena-publicar', [$resenaController, 'publish']);
+$router->post('comentario-moderar', [$resenaController, 'moderate']);
 $router->get('inicio', [$home, 'home']);
 $router->get('catalogo', [$home, 'catalog']);
 $router->get('curso', [$estudiante, 'detail']);

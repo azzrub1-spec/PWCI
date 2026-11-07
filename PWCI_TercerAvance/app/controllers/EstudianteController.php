@@ -9,6 +9,7 @@ use App\Contracts\NivelRepository;
 use App\Core\View;
 use App\Middleware\AuthMiddleware;
 use App\Models\Inscripcion;
+use App\Models\Resena;
 use App\Services\ArchivoNivel;
 use DateTimeImmutable;
 
@@ -18,7 +19,8 @@ final class EstudianteController
         private Inscripcion $inscripciones,
         private CursoRepository $cursos,
         private NivelRepository $niveles,
-        private ArchivoNivel $archivos
+        private ArchivoNivel $archivos,
+        private Resena $resenas
     ) {
     }
 
@@ -32,6 +34,13 @@ final class EstudianteController
         }
 
         $student = ($_SESSION['usuario']['rol'] ?? '') === 'estudiante';
+        $admin = ($_SESSION['usuario']['rol'] ?? '') === 'administrador';
+        $notice = $_SESSION['aviso_resena'] ?? null;
+        if (($notice['curso'] ?? null) === $id) {
+            unset($_SESSION['aviso_resena']);
+        } else {
+            $notice = null;
+        }
         $enrollment = $student ? $this->inscripciones->find($this->studentId(), $id) : null;
         $completed = $enrollment ? $this->inscripciones->completedLevels((int) $enrollment['id_inscripcion']) : [];
         View::render('estudiante/curso', [
@@ -40,7 +49,12 @@ final class EstudianteController
             'inscrito' => $enrollment !== null,
             'completados' => $completed,
             'esEstudiante' => $student,
-            'csrf' => $student ? AuthMiddleware::csrfToken() : '',
+            'csrf' => ($student || $admin) ? AuthMiddleware::csrfToken() : '',
+            'esAdministrador' => $admin,
+            'puedeOpinar' => $student && $this->resenas->canReview($id, $this->studentId()),
+            'calificacion' => $this->resenas->rating($id),
+            'comentarios' => $this->resenas->comments($id),
+            'avisoResena' => $notice,
         ]);
     }
 
