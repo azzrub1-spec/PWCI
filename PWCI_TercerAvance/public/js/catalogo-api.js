@@ -2,8 +2,8 @@
 
 const container = document.querySelector("#cursos");
 const statusMessage = document.querySelector("#estado-catalogo");
-const searchInput = document.querySelector("#buscar");
-const searchButton = document.querySelector("#filtrar");
+const filtersForm = document.querySelector("#filtros-catalogo");
+let currentRequest;
 const categorySelect = document.querySelector("#categoria");
 
 function showCourses(courses) {
@@ -64,30 +64,42 @@ function showCourses(courses) {
 }
 
 function loadCourses() {
-  const title = encodeURIComponent(searchInput.value.trim());
-  const category = encodeURIComponent(categorySelect.value);
+  currentRequest?.abort();
+  const request = new AbortController();
+  currentRequest = request;
+  const filters = new URLSearchParams();
+  for (const [name, value] of new FormData(filtersForm)) {
+    if (name !== "r" && value.trim() !== "") filters.set(name, value.trim());
+  }
   statusMessage.textContent = "Consultando cursos...";
   statusMessage.classList.remove("error-texto");
 
-  fetch(`${window.KONNEKT_API}?titulo=${title}&categoria=${category}`, {
+  fetch(`${window.KONNEKT_API}?${filters}`, {
+    signal: request.signal,
     credentials: "same-origin",
     headers: { Accept: "application/json" },
   })
     .then((response) => response.json().then((body) => ({ response, body })))
     .then(({ response, body }) => {
+      if (request !== currentRequest) return;
       if (!response.ok) {
         throw new Error(body.message || "No fue posible consultar los cursos.");
       }
       showCourses(body.cursos);
     })
     .catch((error) => {
-      container.innerHTML = "";
+      if (request !== currentRequest || error.name === "AbortError") return;
+      container.replaceChildren();
       statusMessage.textContent = error.message;
       statusMessage.classList.add("error-texto");
     });
 }
 
-searchButton.addEventListener("click", loadCourses);
+filtersForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  loadCourses();
+});
+filtersForm.addEventListener("reset", () => setTimeout(loadCourses, 0));
 categorySelect.addEventListener("change", loadCourses);
 
 fetch(window.KONNEKT_CATEGORIAS_API, {

@@ -456,7 +456,8 @@ input[type="file"]::file-selector-button {
 }
 
 .filtros-catalogo {
-  grid-template-columns: minmax(0, 1fr) minmax(180px, 0.6fr) auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
 }
 
 table {

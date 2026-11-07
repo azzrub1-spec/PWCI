@@ -50,10 +50,12 @@ final class CursoController
                 $this->respondCourse($this->cursos->findActive($id));
             }
 
-            $items = $this->cursos->active([
-                'titulo' => is_string($_GET['titulo'] ?? null) ? trim($_GET['titulo']) : '',
-                'categoria' => $_GET['categoria'] ?? null,
-            ]);
+            try {
+                $filters = $this->catalogFilters($_GET);
+            } catch (InvalidArgumentException $exception) {
+                $this->respond(400, ['success' => false, 'message' => $exception->getMessage()]);
+            }
+            $items = $this->cursos->active($filters);
             $this->respond(200, ['success' => true, 'total' => count($items), 'cursos' => $items]);
         }
 
@@ -84,6 +86,39 @@ final class CursoController
         }
 
         $this->respond(404, ['success' => false, 'message' => 'Ruta o método no disponible.']);
+    }
+
+    private function catalogFilters(array $input): array
+    {
+        $filters = [];
+        foreach (['titulo', 'instructor', 'categoria', 'desde', 'hasta'] as $key) {
+            $value = $input[$key] ?? '';
+            if (!is_string($value)) {
+                throw new InvalidArgumentException('Los filtros deben tener un solo valor.');
+            }
+            $filters[$key] = trim($value);
+        }
+
+        if ($filters['categoria'] !== ''
+            && filter_var($filters['categoria'], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) === false) {
+            throw new InvalidArgumentException('La categoría no es válida.');
+        }
+
+        foreach (['desde', 'hasta'] as $key) {
+            $date = $filters[$key];
+            if ($date !== ''
+                && (!preg_match('/\A([0-9]{4})-([0-9]{2})-([0-9]{2})\z/', $date, $parts)
+                    || (int) $parts[1] < 1000
+                    || !checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1]))) {
+                throw new InvalidArgumentException('Ingresa fechas de publicación válidas (AAAA-MM-DD).');
+            }
+        }
+
+        if ($filters['desde'] !== '' && $filters['hasta'] !== '' && $filters['desde'] > $filters['hasta']) {
+            throw new InvalidArgumentException('La fecha inicial no puede ser posterior a la final.');
+        }
+
+        return $filters;
     }
 
     private function save(?array $curso): never

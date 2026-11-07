@@ -24,14 +24,25 @@ final class Curso implements CursoRepository
                 WHERE c.activo = 1';
         $parameters = [];
 
-        if (!empty($filters['titulo'])) {
-            $sql .= ' AND c.titulo LIKE :titulo';
-            $parameters['titulo'] = '%' . $filters['titulo'] . '%';
+        foreach (['titulo' => 'c.titulo', 'instructor' => 'CONCAT(u.nombre, " ", u.apellidos)'] as $key => $column) {
+            if (($filters[$key] ?? '') !== '') {
+                $sql .= " AND $column LIKE :$key ESCAPE '!'";
+                $parameters[$key] = '%' . strtr($filters[$key], ['!' => '!!', '%' => '!%', '_' => '!_']) . '%';
+            }
         }
 
         if (!empty($filters['categoria'])) {
             $sql .= ' AND c.id_categoria = :categoria';
             $parameters['categoria'] = (int) $filters['categoria'];
+        }
+
+        if (($filters['desde'] ?? '') !== '') {
+            $sql .= ' AND c.fecha_publicacion >= :desde';
+            $parameters['desde'] = $filters['desde'] . ' 00:00:00';
+        }
+        if (($filters['hasta'] ?? '') !== '') {
+            $sql .= ' AND c.fecha_publicacion <= :hasta';
+            $parameters['hasta'] = $filters['hasta'] . ' 23:59:59';
         }
 
         $sql .= ' ORDER BY c.fecha_publicacion DESC';
