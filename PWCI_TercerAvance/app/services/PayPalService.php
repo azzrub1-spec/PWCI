@@ -63,11 +63,22 @@ final class PayPalService
     /** @return array<string, mixed> */
     public function captureOrder(string $orderId): array
     {
-        return $this->request(
-            'POST',
-            '/v2/checkout/orders/' . rawurlencode($orderId) . '/capture',
-            new \stdClass()
-        );
+        $path = '/v2/checkout/orders/' . rawurlencode($orderId);
+        try {
+            $result = $this->request('POST', $path . '/capture', new \stdClass(), 'capture-' . $orderId);
+            $capture = $result['purchase_units'][0]['payments']['captures'][0] ?? [];
+            if (($capture['status'] ?? '') === 'COMPLETED') {
+                return $result;
+            }
+        } catch (RuntimeException $error) {
+            $result = $this->request('GET', $path, null);
+            if (($result['status'] ?? '') !== 'COMPLETED') {
+                throw $error;
+            }
+            return $result;
+        }
+
+        return $this->request('GET', $path, null);
     }
 
     private function accessToken(): string
@@ -102,24 +113,30 @@ final class PayPalService
         return (string) $data['access_token'];
     }
 
-    /**
-     * @param array<string, mixed>|\stdClass $body
-     * @return array<string, mixed>
-     */
-    private function request(string $method, string $path, array|\stdClass $body): array
-    {
+    private function request(
+        string $method,
+        string $path,
+        array|\stdClass|null $body,
+        ?string $requestId = null
+    ): array {
+        $headers = [
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $this->accessToken(),
+        ];
+        if ($requestId !== null) {
+            $headers[] = 'PayPal-Request-Id: ' . $requestId;
+        }
         $curl = curl_init($this->baseUrl . $path);
         curl_setopt_array($curl, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE),
-            CURLOPT_HTTPHEADER => [
-                'Accept: application/json',
-                'Content-Type: application/json',
-                'Authorization: Bearer ' . $this->accessToken(),
-            ],
+            CURLOPT_HTTPHEADER => $headers,
             CURLOPT_TIMEOUT => 20,
         ]);
+        if ($body !== null) {
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($body, JSON_UNESCAPED_UNICODE));
+        }
 
         $response = curl_exec($curl);
         $status = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);

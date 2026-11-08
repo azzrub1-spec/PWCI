@@ -20,6 +20,7 @@ use App\Core\View;
 use App\Models\Usuario;
 use App\Models\Categoria;
 use App\Models\Curso;
+use App\Models\Compra;
 use App\Models\Inscripcion;
 use App\Models\Nivel;
 use App\Models\Mensaje;
@@ -41,7 +42,7 @@ $usuariosAdmin = new UsuarioAdminController($usuarios);
 $auth = new AuthController($usuarios);
 $home = new HomeController();
 $profile = new ProfileController($usuarios);
-$payment = new PaymentController(dirname(__DIR__) . '/config/paypal.local.php');
+$payment = new PaymentController(new Compra($database->connection()), dirname(__DIR__) . '/config/paypal.local.php');
 $router = new Router();
 $categorias = new CategoriaController(new Categoria($database->connection()));
 $cursos = new CursoController(

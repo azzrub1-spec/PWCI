@@ -24,6 +24,12 @@ require dirname(__DIR__) . '/layout/header.php';
     <a class="boton" href="<?= BASE_URL ?>/index.php?r=login">Ingresar para inscribirme</a>
   <?php endif; ?>
 
+  <?php if ($esEstudiante && (float) $curso['costo'] > 0): ?>
+    <p><a class="boton" href="<?= BASE_URL ?>/index.php?r=pago&amp;curso=<?= $courseId ?>">
+      Comprar curso completo ($<?= number_format((float) $curso['costo'], 2) ?> MXN)
+    </a></p>
+  <?php endif; ?>
+
   <?php if ($esEstudiante): ?>
     <p>
       <a class="boton-secundario" href="<?= BASE_URL ?>/index.php?r=conversacion&amp;curso=<?= $courseId ?>">
@@ -45,6 +51,11 @@ require dirname(__DIR__) . '/layout/header.php';
         <h3><?= (int) $nivel['orden'] ?>. <?= htmlspecialchars($nivel['titulo']) ?></h3>
         <?php if (!$free): ?>
           <p>Nivel de pago: $<?= number_format((float) $nivel['costo_nivel'], 2) ?> MXN.</p>
+          <?php if ($esEstudiante && !(bool) $nivel['gratis'] && (float) $nivel['costo_nivel'] > 0): ?>
+            <a class="boton-secundario" href="<?= BASE_URL ?>/index.php?r=pago&amp;curso=<?= $courseId ?>&amp;nivel=<?= $levelId ?>">
+              Comprar nivel
+            </a>
+          <?php endif; ?>
         <?php elseif (!$inscrito): ?>
           <p>Nivel gratuito</p>
         <?php else: ?>

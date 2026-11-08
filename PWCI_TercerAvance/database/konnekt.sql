@@ -102,10 +102,14 @@ CREATE TABLE progreso_nivel (
 CREATE TABLE pago (
   id_pago INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   id_inscripcion INT UNSIGNED NOT NULL,
+  id_nivel INT UNSIGNED NULL,
   monto DECIMAL(10,2) UNSIGNED NOT NULL,
   forma_pago VARCHAR(50) NOT NULL,
   referencia_pasarela VARCHAR(150) NULL,
   fecha_pago DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT uq_pago_referencia UNIQUE (referencia_pasarela),
+  CONSTRAINT fk_pago_nivel FOREIGN KEY (id_nivel) REFERENCES nivel(id_nivel)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
   CONSTRAINT fk_pago_inscripcion
     FOREIGN KEY (id_inscripcion) REFERENCES inscripcion(id_inscripcion)
     ON UPDATE CASCADE ON DELETE RESTRICT
