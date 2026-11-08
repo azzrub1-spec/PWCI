@@ -115,6 +115,8 @@ $router->get('archivo-nivel', static function () use ($niveles): void {
 });
 $router->get('pago', [$payment, 'show']);
 $router->post('paypal-crear', [$payment, 'create']);
+$router->post('stripe-crear', [$payment, 'stripeCreate']);
+$router->get('stripe-confirmar', [$payment, 'stripeConfirm']);
 $router->get('paypal-capturar', [$payment, 'capture']);
 $router->get('paypal-cancelar', [$payment, 'cancel']);
 $router->post('logout', [$auth, 'logout']);

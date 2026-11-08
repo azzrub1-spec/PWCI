@@ -49,8 +49,13 @@ final class Compra
         return (bool) $query->fetchColumn();
     }
 
-    public function complete(int $student, array $order, string $reference, callable $capture): void
-    {
+    public function complete(
+        int $student,
+        array $order,
+        string $reference,
+        callable $capture,
+        string $method = 'PayPal'
+    ): void {
         $this->db->beginTransaction();
         try {
             // Serializa compras del mismo alumno, incluso desde dos sesiones.
@@ -81,7 +86,7 @@ final class Compra
                     'INSERT INTO pago (id_inscripcion, id_nivel, monto, forma_pago, referencia_pasarela)
                      VALUES (?, ?, ?, ?, ?)'
                 );
-                $insert->execute([$enrollment, $order['nivel'], $order['monto'], 'PayPal', $reference]);
+                $insert->execute([$enrollment, $order['nivel'], $order['monto'], $method, $reference]);
             }
             $this->db->commit();
         } catch (Throwable $error) {

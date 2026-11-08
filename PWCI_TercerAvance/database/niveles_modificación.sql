@@ -1,3 +1,5 @@
+-- Ejecutar una sola vez sobre la base existente del segundo/tercer avance.
+-- Agrega rutas de materiales; no elimina tablas ni registros.
 USE konnekt;
 
 ALTER TABLE nivel

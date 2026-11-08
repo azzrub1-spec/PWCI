@@ -8,6 +8,7 @@ use App\Core\View;
 use App\Middleware\AuthMiddleware;
 use App\Models\Compra;
 use App\Services\PayPalService;
+use App\Services\StripeTestService;
 use PDOException;
 use RuntimeException;
 
@@ -70,6 +71,84 @@ final class PaymentController
             throw new RuntimeException('PayPal no devolvió un enlace de aprobación válido.');
         } catch (RuntimeException $error) {
             $this->render($selection, $error instanceof PDOException ? 'No se pudo iniciar la compra.' : $error->getMessage());
+        }
+    }
+
+    public function stripeCreate(): void
+    {
+        AuthMiddleware::requireRole(['estudiante']);
+        $csrf = $_POST['csrf'] ?? '';
+        if (!is_string($csrf) || !hash_equals(AuthMiddleware::csrfToken(), $csrf)) {
+            http_response_code(403);
+            View::render('errors/403');
+            return;
+        }
+
+        $item = $this->selection($_POST);
+        if ($item === null) {
+            $this->render(null, 'Este contenido no está disponible para compra.');
+            return;
+        }
+
+        try {
+            if ($this->compras->alreadyBought($this->student(), $item['curso'], $item['nivel'])) {
+                throw new RuntimeException('Ya compraste este contenido.');
+            }
+            $state = bin2hex(random_bytes(16));
+            $return = $this->absoluteUrl('stripe-confirmar', $state);
+            $cancel = $this->absoluteUrl('pago', $state) . '&curso=' . $item['curso']
+                . ($item['nivel'] === null ? '' : '&nivel=' . $item['nivel']);
+            $stripe = new StripeTestService(dirname($this->configPath) . '/stripe.local.php');
+            $checkout = $stripe->create($item, $return . '&session_id={CHECKOUT_SESSION_ID}', $cancel);
+            $id = $checkout['id'] ?? '';
+            $url = $checkout['url'] ?? '';
+            if (!is_string($id) || !preg_match('/\Acs_test_[A-Za-z0-9]{1,110}\z/', $id)
+                || ($checkout['livemode'] ?? null) !== false
+                || !is_string($url) || parse_url($url, PHP_URL_SCHEME) !== 'https'
+                || parse_url($url, PHP_URL_HOST) !== 'checkout.stripe.com') {
+                throw new RuntimeException('Stripe no devolvió una sesión de prueba válida.');
+            }
+            $_SESSION['compras_stripe'][$id] = [
+                'alumno' => $this->student(), 'estado' => $state, 'item' => $item,
+            ];
+            header('Location: ' . $url, true, 303);
+            exit;
+        } catch (RuntimeException $error) {
+            $this->render($item, $error instanceof PDOException
+                ? 'No se pudo iniciar la compra.'
+                : $error->getMessage());
+        }
+    }
+
+    public function stripeConfirm(): void
+    {
+        AuthMiddleware::requireRole(['estudiante']);
+        $id = $_GET['session_id'] ?? '';
+        $state = $_GET['estado'] ?? '';
+        $order = is_string($id) ? ($_SESSION['compras_stripe'][$id] ?? null) : null;
+        if ($order === null || $order['alumno'] !== $this->student()
+            || !is_string($state) || !hash_equals($order['estado'], $state)) {
+            $this->render(null, 'La orden de Stripe no corresponde a esta sesión.');
+            return;
+        }
+
+        $item = $order['item'];
+        try {
+            $stripe = new StripeTestService(dirname($this->configPath) . '/stripe.local.php');
+            $this->compras->complete(
+                $this->student(),
+                $item,
+                'stripe:' . $id,
+                static function () use ($stripe, $id, $item): void {
+                    $stripe->verify($id, $item['monto']);
+                },
+                'Tarjeta (Stripe)'
+            );
+            $this->render($item, null, 'Compra con tarjeta confirmada por Stripe y registrada.');
+        } catch (RuntimeException $error) {
+            $this->render($item, $error instanceof PDOException
+                ? 'No se pudo registrar la compra. Recarga esta página para reintentar.'
+                : $error->getMessage());
         }
     }
 
