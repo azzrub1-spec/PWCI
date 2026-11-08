@@ -47,6 +47,9 @@ final class EstudianteController
             'curso' => $course,
             'niveles' => $this->niveles->byCourse($id),
             'inscrito' => $enrollment !== null,
+            'compras' => $enrollment
+                ? $this->inscripciones->paidLevels((int) $enrollment['id_inscripcion'])
+                : [],
             'completados' => $completed,
             'esEstudiante' => $student,
             'csrf' => ($student || $admin) ? AuthMiddleware::csrfToken() : '',

@@ -67,6 +67,14 @@ final class Inscripcion
         return array_map('intval', $query->fetchAll(PDO::FETCH_COLUMN));
     }
 
+    public function paidLevels(int $enrollment): array
+    {
+        $query = $this->database->prepare('SELECT id_nivel FROM pago WHERE id_inscripcion = ?');
+        $query->execute([$enrollment]);
+
+        return $query->fetchAll(PDO::FETCH_COLUMN);
+    }
+
     public function accessibleLevel(int $student, int $level): ?array
     {
         return $this->findAccessibleLevel($student, $level, false);
@@ -81,7 +89,12 @@ final class Inscripcion
                 JOIN inscripcion i ON i.id_curso = c.id_curso
                 LEFT JOIN progreso_nivel p ON p.id_inscripcion = i.id_inscripcion AND p.id_nivel = n.id_nivel
                 WHERE i.id_estudiante = :estudiante AND n.id_nivel = :nivel
-                  AND c.activo = 1 AND n.gratis = 1 AND n.costo_nivel = 0';
+                  AND c.activo = 1
+                  AND ((n.gratis = 1 AND n.costo_nivel = 0) OR EXISTS (
+                      SELECT 1 FROM pago compra
+                      WHERE compra.id_inscripcion = i.id_inscripcion
+                        AND (compra.id_nivel IS NULL OR compra.id_nivel = n.id_nivel)
+                  ))';
         $query = $this->database->prepare($sql . ($lock ? ' FOR UPDATE' : ''));
         $query->execute(['estudiante' => $student, 'nivel' => $level]);
 

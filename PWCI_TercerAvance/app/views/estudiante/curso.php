@@ -1,6 +1,8 @@
 <?php
 $title = $curso['titulo'];
 $courseId = (int) $curso['id_curso'];
+$cursoComprado = in_array(null, $compras, true);
+$nivelesComprados = array_map('intval', array_filter($compras, static fn ($id) => $id !== null));
 $freeLevels = array_filter($niveles, static fn (array $n): bool => (bool) $n['gratis'] && (float) $n['costo_nivel'] === 0.0);
 require dirname(__DIR__) . '/layout/header.php';
 ?>
@@ -24,7 +26,7 @@ require dirname(__DIR__) . '/layout/header.php';
     <a class="boton" href="<?= BASE_URL ?>/index.php?r=login">Ingresar para inscribirme</a>
   <?php endif; ?>
 
-  <?php if ($esEstudiante && (float) $curso['costo'] > 0): ?>
+  <?php if ($esEstudiante && !$cursoComprado && (float) $curso['costo'] > 0): ?>
     <p><a class="boton" href="<?= BASE_URL ?>/index.php?r=pago&amp;curso=<?= $courseId ?>">
       Comprar curso completo ($<?= number_format((float) $curso['costo'], 2) ?> MXN)
     </a></p>
@@ -46,21 +48,25 @@ require dirname(__DIR__) . '/layout/header.php';
   <?php endif; ?>
   <div class="lista-niveles">
     <?php foreach ($niveles as $index => $nivel): ?>
-      <?php $levelId = (int) $nivel['id_nivel']; $free = isset($freeLevels[$index]); ?>
+      <?php
+      $levelId = (int) $nivel['id_nivel'];
+      $free = isset($freeLevels[$index]);
+      $puedeAbrir = $inscrito && ($free || $cursoComprado || in_array($levelId, $nivelesComprados, true));
+      ?>
       <article class="panel">
         <h3><?= (int) $nivel['orden'] ?>. <?= htmlspecialchars($nivel['titulo']) ?></h3>
-        <?php if (!$free): ?>
+        <?php if ($puedeAbrir): ?>
+          <p><?= in_array($levelId, $completados, true) ? 'Completado' : 'Pendiente' ?></p>
+          <a class="boton-secundario" href="<?= BASE_URL ?>/index.php?r=nivel-estudiante&amp;id=<?= $levelId ?>">Abrir nivel</a>
+        <?php elseif (!$free): ?>
           <p>Nivel de pago: $<?= number_format((float) $nivel['costo_nivel'], 2) ?> MXN.</p>
           <?php if ($esEstudiante && !(bool) $nivel['gratis'] && (float) $nivel['costo_nivel'] > 0): ?>
             <a class="boton-secundario" href="<?= BASE_URL ?>/index.php?r=pago&amp;curso=<?= $courseId ?>&amp;nivel=<?= $levelId ?>">
               Comprar nivel
             </a>
           <?php endif; ?>
-        <?php elseif (!$inscrito): ?>
-          <p>Nivel gratuito</p>
         <?php else: ?>
-          <p><?= in_array($levelId, $completados, true) ? 'Completado' : 'Pendiente' ?></p>
-          <a class="boton-secundario" href="<?= BASE_URL ?>/index.php?r=nivel-estudiante&amp;id=<?= $levelId ?>">Abrir nivel</a>
+          <p>Nivel gratuito</p>
         <?php endif; ?>
       </article>
     <?php endforeach; ?>
