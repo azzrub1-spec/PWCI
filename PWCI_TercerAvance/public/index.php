@@ -77,6 +77,10 @@ $router->get('mis-inscripciones', static function () use ($estudiante): void {
     AuthMiddleware::requireRole(['estudiante']);
     $estudiante->index();
 });
+$router->get('certificado', static function () use ($estudiante): void {
+    AuthMiddleware::requireRole(['estudiante']);
+    $estudiante->certificate();
+});
 $router->get('nivel-estudiante', static function () use ($estudiante): void {
     AuthMiddleware::requireRole(['estudiante']);
     $estudiante->lesson();

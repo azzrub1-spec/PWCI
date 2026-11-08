@@ -63,7 +63,7 @@ require dirname(__DIR__) . '/layout/header.php';
           <tr>
             <th scope="col">Curso</th><th scope="col">Categoría</th><th scope="col">Inscripción</th>
             <th scope="col">Último acceso</th><th scope="col">Terminación</th><th scope="col">Progreso</th>
-            <th scope="col">Estado</th><th scope="col">Niveles</th>
+            <th scope="col">Estado</th><th scope="col">Niveles</th><th scope="col">Certificado</th>
           </tr>
         </thead>
         <tbody>
@@ -87,6 +87,13 @@ require dirname(__DIR__) . '/layout/header.php';
               <td>
                 <?php if ((bool) $curso['activo']): ?>
                   <a href="<?= BASE_URL ?>/index.php?r=curso&amp;curso=<?= (int) $curso['id_curso'] ?>">Ver niveles</a>
+                <?php else: ?>
+                  —
+                <?php endif; ?>
+              </td>
+              <td>
+                <?php if ((bool) $curso['tiene_certificado']): ?>
+                  <a href="<?= BASE_URL ?>/index.php?r=certificado&amp;curso=<?= (int) $curso['id_curso'] ?>">Ver certificado</a>
                 <?php else: ?>
                   —
                 <?php endif; ?>

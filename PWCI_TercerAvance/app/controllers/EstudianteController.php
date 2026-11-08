@@ -63,6 +63,7 @@ final class EstudianteController
 
     public function index(): void
     {
+        $this->inscripciones->issueCertificates($this->studentId());
         $cursos = $this->inscripciones->byStudent($this->studentId());
         $categorias = [];
         foreach ($cursos as $curso) {
@@ -132,6 +133,18 @@ final class EstudianteController
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
 
         return $date !== false && $date->format('Y-m-d') === $value && substr($value, 0, 4) !== '0000';
+    }
+
+    public function certificate(): void
+    {
+        $course = $this->queryId('curso');
+        $certificate = $course ? $this->inscripciones->certificate($this->studentId(), $course) : null;
+        if ($certificate === null) {
+            $this->notFound();
+            return;
+        }
+
+        View::render('estudiante/certificado', ['certificado' => $certificate]);
     }
 
     public function lesson(): void

@@ -18,6 +18,7 @@ final class Inscripcion
         $query = $this->database->prepare(
             'SELECT i.id_curso, i.fecha_inscripcion, i.fecha_ultimo_acceso, i.fecha_terminacion,
                     c.titulo, c.activo, ca.id_categoria, ca.nombre AS categoria,
+                    EXISTS (SELECT 1 FROM certificado d WHERE d.id_inscripcion = i.id_inscripcion) AS tiene_certificado,
                     (SELECT COUNT(*) FROM nivel n WHERE n.id_curso = i.id_curso) AS total,
                     (SELECT COUNT(*) FROM progreso_nivel p
                      JOIN nivel n ON n.id_nivel = p.id_nivel
@@ -109,6 +110,49 @@ final class Inscripcion
         $query->execute(['id' => $enrollment]);
     }
 
+    public function issueCertificates(int $student, ?int $enrollment = null): void
+    {
+        $scope = $enrollment === null ? '' : ' AND i.id_inscripcion = :inscripcion';
+        $query = $this->database->prepare(
+            "INSERT INTO certificado (id_inscripcion, codigo, fecha_emision)
+             SELECT i.id_inscripcion, CONCAT('KONNEKT-', i.id_inscripcion), i.fecha_terminacion
+             FROM inscripcion i
+             WHERE i.id_estudiante = :estudiante AND i.fecha_terminacion IS NOT NULL
+               AND NOT EXISTS (SELECT 1 FROM certificado d WHERE d.id_inscripcion = i.id_inscripcion)
+               AND EXISTS (SELECT 1 FROM nivel n WHERE n.id_curso = i.id_curso)
+               AND NOT EXISTS (
+                   SELECT 1 FROM nivel n WHERE n.id_curso = i.id_curso AND NOT EXISTS (
+                       SELECT 1 FROM progreso_nivel p WHERE p.id_inscripcion = i.id_inscripcion
+                         AND p.id_nivel = n.id_nivel AND p.completado = 1
+                   )
+               )" . $scope . "
+             ON DUPLICATE KEY UPDATE codigo = certificado.codigo"
+        );
+        $params = ['estudiante' => $student];
+        if ($enrollment !== null) {
+            $params['inscripcion'] = $enrollment;
+        }
+        $query->execute($params);
+    }
+
+    public function certificate(int $student, int $course): ?array
+    {
+        $query = $this->database->prepare(
+            "SELECT d.codigo, d.fecha_emision, c.titulo,
+                    CONCAT(a.nombre, ' ', a.apellidos) AS alumno,
+                    CONCAT(t.nombre, ' ', t.apellidos) AS instructor
+             FROM certificado d
+             JOIN inscripcion i ON i.id_inscripcion = d.id_inscripcion
+             JOIN curso c ON c.id_curso = i.id_curso
+             JOIN usuario a ON a.id_usuario = i.id_estudiante
+             JOIN usuario t ON t.id_usuario = c.id_instructor
+             WHERE i.id_estudiante = :estudiante AND i.id_curso = :curso"
+        );
+        $query->execute(['estudiante' => $student, 'curso' => $course]);
+
+        return $query->fetch() ?: null;
+    }
+
     public function complete(int $student, int $level): bool
     {
         $this->database->beginTransaction();
@@ -138,6 +182,7 @@ final class Inscripcion
                  WHERE i.id_inscripcion = :inscripcion'
             );
             $update->execute(['inscripcion' => $enrollment]);
+            $this->issueCertificates($student, $enrollment);
             $this->database->commit();
 
             return true;
