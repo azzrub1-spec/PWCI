@@ -1,0 +1,4 @@
+/config/paypal.local.php
+/public/uploads/perfiles/*
+/public/uploads/cursos/*
+/config/stripe.local.php
