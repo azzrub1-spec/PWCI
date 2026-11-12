@@ -13,6 +13,16 @@ form.addEventListener("submit", (event) => {
     errors.push("Completa todos los campos con información válida.");
   }
 
+  const image = data.get("imagen_perfil");
+  if (!image || image.size === 0 || image.size > 2 * 1024 * 1024
+      || !["image/jpeg", "image/png"].includes(image.type)) {
+    errors.push("Selecciona una imagen JPG o PNG de hasta 2 MB.");
+  }
+
+  if (!String(data.get("nombre")).trim() || !String(data.get("apellidos")).trim()) {
+    errors.push("Nombre y apellidos son obligatorios.");
+  }
+
   if (!passwordRule.test(data.get("password"))) {
     errors.push("La contraseña debe tener 8 caracteres, una mayúscula, un número y un símbolo.");
   }

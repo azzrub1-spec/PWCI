@@ -15,7 +15,7 @@ final class Curso implements CursoRepository
 
     public function active(array $filters = []): array
     {
-        $sql = 'SELECT c.id_curso, c.titulo, c.descripcion, c.imagen, c.costo,
+        $sql = 'SELECT c.id_curso, c.titulo, c.imagen, c.costo,
                        c.fecha_publicacion, ca.nombre AS categoria,
                        CONCAT(u.nombre, " ", u.apellidos) AS instructor
                 FROM curso c

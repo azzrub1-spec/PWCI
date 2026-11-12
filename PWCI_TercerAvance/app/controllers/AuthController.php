@@ -26,7 +26,7 @@ final class AuthController
     public function login(): void
     {
         $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
-        $password = (string) ($_POST['password'] ?? '');
+        $password = $this->input('password');
 
         if ($email === false || $email === null || $password === '') {
             View::render('auth/login', [
@@ -77,15 +77,15 @@ final class AuthController
     public function register(): void
     {
         $data = [
-            'nombre' => trim((string) ($_POST['nombre'] ?? '')),
-            'apellidos' => trim((string) ($_POST['apellidos'] ?? '')),
-            'genero' => (string) ($_POST['genero'] ?? ''),
-            'fecha_nacimiento' => (string) ($_POST['fecha_nacimiento'] ?? ''),
+            'nombre' => trim($this->input('nombre')),
+            'apellidos' => trim($this->input('apellidos')),
+            'genero' => $this->input('genero'),
+            'fecha_nacimiento' => $this->input('fecha_nacimiento'),
             'email' => filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL),
-            'rol' => (string) ($_POST['rol'] ?? ''),
+            'rol' => $this->input('rol'),
         ];
-        $password = (string) ($_POST['password'] ?? '');
-        $confirmation = (string) ($_POST['password_confirmation'] ?? '');
+        $password = $this->input('password');
+        $confirmation = $this->input('password_confirmation');
         $errors = $this->validateRegistration($data, $password, $confirmation);
 
         if ($this->usuarios->findByEmail((string) $data['email']) !== null) {
@@ -97,8 +97,29 @@ final class AuthController
             return;
         }
 
+        $imageErrors = [];
+        $image = (new \App\Services\ImagenPerfil())->guardar($imageErrors);
+        if ($image === null && $imageErrors === []) {
+            $imageErrors[] = 'Selecciona una imagen JPG o PNG para tu perfil.';
+        }
+        if ($imageErrors !== []) {
+            View::render('auth/registro', ['errors' => $imageErrors]);
+            return;
+        }
+
         $data['password_hash'] = password_hash($password, PASSWORD_DEFAULT);
-        $this->usuarios->create($data);
+        $data['imagen_perfil'] = $image;
+        try {
+            $this->usuarios->create($data);
+        } catch (\Throwable $exception) {
+            @unlink(dirname(__DIR__, 2) . '/public/' . $image);
+            $message = $exception instanceof \PDOException
+                && (int) ($exception->errorInfo[1] ?? 0) === 1062
+                ? 'El correo ya está registrado.'
+                : 'No se pudo crear la cuenta. Intenta nuevamente.';
+            View::render('auth/registro', ['errors' => [$message]]);
+            return;
+        }
         View::render('auth/login', [
             'success' => 'Cuenta creada correctamente. Ya puedes ingresar.',
         ]);
@@ -137,11 +158,12 @@ final class AuthController
             $errors[] = 'Selecciona un rol válido.';
         }
 
-        $date = \DateTimeImmutable::createFromFormat(
-            'Y-m-d',
-            $data['fecha_nacimiento']
-        );
-        if ($date === false || $date > new \DateTimeImmutable('today')) {
+        $date = preg_match('/\A[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}\z/', $data['fecha_nacimiento'])
+            ? \DateTimeImmutable::createFromFormat('!Y-m-d', $data['fecha_nacimiento'])
+            : false;
+        if ($date === false || $date->format('Y-m-d') !== $data['fecha_nacimiento']
+            || $date->format('Y') < '1000'
+            || $date > new \DateTimeImmutable('today')) {
             $errors[] = 'La fecha de nacimiento no es válida.';
         }
 
@@ -153,7 +175,21 @@ final class AuthController
             $errors[] = 'Las contraseñas no coinciden.';
         }
 
+        foreach (['nombre' => 100, 'apellidos' => 150, 'email' => 150] as $field => $limit) {
+            if (mb_strlen((string) $data[$field]) > $limit
+                || preg_match('/[\x00-\x1F\x7F]/', (string) $data[$field])) {
+                $errors[] = 'Revisa el campo ' . $field . ': máximo ' . $limit . ' caracteres.';
+            }
+        }
+
         return $errors;
+    }
+
+    private function input(string $key): string
+    {
+        $value = $_POST[$key] ?? '';
+
+        return is_string($value) ? $value : '';
     }
 }
 

@@ -11,7 +11,7 @@ final class HomeController
 {
     public function home(): void
     {
-        View::render('publico/inicio');
+        View::render('publico/catalogo');
     }
 
     public function catalog(): void

@@ -112,6 +112,32 @@ try {
         );
         $controller->api($resource, $method, $id);
     }
+    if ($resource === 'cursos' && $method === 'GET' && $id !== null && !$owned) {
+        AuthMiddleware::requireApiRole(['estudiante', 'instructor', 'administrador']);
+        $course = (new Curso($database->connection()))->findActive($id);
+        if ($course === null) {
+            respond(404, ['success' => false, 'message' => 'Curso no encontrado.']);
+        }
+        $user = $_SESSION['usuario'];
+        $allowed = $user['rol'] === 'administrador'
+            || ($user['rol'] === 'instructor' && (int) $course['id_instructor'] === (int) $user['id']);
+        if ($user['rol'] === 'estudiante') {
+            $enrollments = new Inscripcion($database->connection());
+            $enrollment = $enrollments->find((int) $user['id'], $id);
+            if ($enrollment !== null) {
+                $levels = (new Nivel($database->connection()))->byCourse($id);
+                $free = array_filter($levels, static fn (array $level): bool =>
+                    (bool) $level['gratis'] && (float) $level['costo_nivel'] === 0.0
+                );
+                $allowed = $free !== []
+                    || $enrollments->paidLevels((int) $enrollment['id_inscripcion']) !== [];
+            }
+        }
+        if (!$allowed) {
+            respond(403, ['success' => false, 'message' => 'Inscríbete o compra el curso para consultar su detalle.']);
+        }
+    }
+
     $categories = new Categoria($database->connection());
 
     if ($resource === 'categorias') {

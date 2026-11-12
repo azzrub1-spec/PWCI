@@ -27,11 +27,11 @@ final class Usuario
     {
         $statement = $this->database->prepare(
             'INSERT INTO usuario
-                (nombre, apellidos, genero, fecha_nacimiento, email,
+                (nombre, apellidos, genero, fecha_nacimiento, email, imagen_perfil,
                  password_hash, rol, intentos_fallidos, activo,
                  fecha_registro, fecha_ultimo_cambio)
              VALUES
-                (:nombre, :apellidos, :genero, :fecha_nacimiento, :email,
+                (:nombre, :apellidos, :genero, :fecha_nacimiento, :email, :imagen_perfil,
                  :password_hash, :rol, 0, 1, NOW(), NOW())'
         );
         $statement->execute($data);

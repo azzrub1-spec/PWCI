@@ -11,7 +11,11 @@ require dirname(__DIR__) . '/layout/header.php';
     <span class="etiqueta"><?= htmlspecialchars($curso['categoria']) ?></span>
     <h1><?= htmlspecialchars($curso['titulo']) ?></h1>
     <p>Instructor: <?= htmlspecialchars($curso['instructor']) ?></p>
-    <p><?= nl2br(htmlspecialchars($curso['descripcion'])) ?></p>
+    <?php if ($puedeVerDetalle): ?>
+      <p><?= nl2br(htmlspecialchars($curso['descripcion'])) ?></p>
+    <?php else: ?>
+      <p class="muted">Inscríbete a un nivel gratuito o realiza una compra para consultar el detalle del curso.</p>
+    <?php endif; ?>
   </div>
 
   <?php if ($inscrito): ?>
@@ -71,6 +75,7 @@ require dirname(__DIR__) . '/layout/header.php';
       </article>
     <?php endforeach; ?>
   </div>
+  <?php if ($puedeVerDetalle): ?>
   <h2 id="opiniones">Opiniones del curso</h2>
   <?php if ((int) $calificacion['cantidad'] > 0): ?>
     <p><strong><?= number_format((float) $calificacion['promedio'], 2) ?> de 5 estrellas</strong>
@@ -136,6 +141,7 @@ require dirname(__DIR__) . '/layout/header.php';
       </article>
     <?php endforeach; ?>
   </div>
+  <?php endif; ?>
 </section>
 <script src="<?= BASE_URL ?>/js/estudiante.js"></script>
 <?php require dirname(__DIR__) . '/layout/footer.php'; ?>

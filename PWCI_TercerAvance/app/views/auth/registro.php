@@ -14,14 +14,14 @@
       </ul>
     </div>
   <?php endif; ?>
-  <form id="registro" class="panel formulario" method="post"
+  <form id="registro" class="panel formulario" method="post" enctype="multipart/form-data"
         action="<?= BASE_URL ?>/index.php?r=registro" novalidate>
     <div class="dos-columnas">
       <label class="campo">Nombre
-        <input name="nombre" required>
+        <input name="nombre" maxlength="100" required>
       </label>
       <label class="campo">Apellidos
-        <input name="apellidos" required>
+        <input name="apellidos" maxlength="150" required>
       </label>
       <label class="campo">Fecha de nacimiento
         <input name="fecha_nacimiento" type="date" required>
@@ -43,7 +43,11 @@
       </label>
     </div>
     <label class="campo">Correo electrónico
-      <input name="email" type="email" autocomplete="email" required>
+      <input name="email" type="email" maxlength="150" autocomplete="email" required>
+    </label>
+    <label class="campo">Imagen de perfil
+      <input name="imagen_perfil" type="file" accept="image/jpeg,image/png" required>
+      <small>JPG o PNG, máximo 2 MB.</small>
     </label>
     <div class="dos-columnas">
       <label class="campo">Contraseña

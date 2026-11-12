@@ -26,6 +26,7 @@ final class EstudianteController
 
     public function detail(): void
     {
+        AuthMiddleware::requireSession();
         $id = $this->queryId('curso');
         $course = $id ? $this->cursos->findActive($id) : null;
         if ($course === null) {
@@ -43,13 +44,24 @@ final class EstudianteController
         }
         $enrollment = $student ? $this->inscripciones->find($this->studentId(), $id) : null;
         $completed = $enrollment ? $this->inscripciones->completedLevels((int) $enrollment['id_inscripcion']) : [];
+        $purchases = $enrollment
+            ? $this->inscripciones->paidLevels((int) $enrollment['id_inscripcion'])
+            : [];
+        $levels = $this->niveles->byCourse($id);
+        $free = array_filter($levels, static fn (array $level): bool =>
+            (bool) $level['gratis'] && (float) $level['costo_nivel'] === 0.0
+        );
+        $allowed = $admin
+            || (($_SESSION['usuario']['rol'] ?? '') === 'instructor'
+                && (int) $course['id_instructor'] === (int) $_SESSION['usuario']['id'])
+            || ($enrollment !== null && ($purchases !== [] || $free !== []));
+
         View::render('estudiante/curso', [
+            'puedeVerDetalle' => $allowed,
             'curso' => $course,
-            'niveles' => $this->niveles->byCourse($id),
+            'niveles' => $levels,
             'inscrito' => $enrollment !== null,
-            'compras' => $enrollment
-                ? $this->inscripciones->paidLevels((int) $enrollment['id_inscripcion'])
-                : [],
+            'compras' => $purchases,
             'completados' => $completed,
             'esEstudiante' => $student,
             'csrf' => ($student || $admin) ? AuthMiddleware::csrfToken() : '',
