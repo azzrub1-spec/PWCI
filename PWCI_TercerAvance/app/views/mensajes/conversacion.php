@@ -5,8 +5,13 @@ require dirname(__DIR__) . '/layout/header.php';
 ?>
 <section class="pagina">
   <div class="titulo">
-    <a href="<?= BASE_URL ?>/index.php?r=mensajes">Volver a Mensajes</a>
+    <a class="boton-secundario"
+       href="<?= BASE_URL ?>/index.php?r=mensajes">
+      ← Volver a Mensajes
+    </a>
+
     <h1><?= htmlspecialchars($conversacion['titulo']) ?></h1>
+
     <p>Conversación privada con
       <?= htmlspecialchars($conversacion[$peer . '_nombre'] . ' ' . $conversacion[$peer . '_apellidos']) ?>.
     </p>

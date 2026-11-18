@@ -18,7 +18,10 @@ require dirname(__DIR__) . '/layout/header.php';
 
 <section class="pagina">
   <div class="acciones">
-    <a href="<?= BASE_URL ?>/index.php?r=mis-inscripciones">Volver a Mis cursos</a>
+    <a class="boton-secundario"
+       href="<?= BASE_URL ?>/index.php?r=mis-inscripciones">
+      ← Volver a Mis cursos
+    </a>
   </div>
 
   <article class="panel diploma">

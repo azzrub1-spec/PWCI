@@ -10,14 +10,14 @@ $fecha = static function (?string $valor) use ($meses): string {
 };
 require dirname(__DIR__) . '/layout/header.php';
 ?>
-<section class="pagina">
+<section class="pagina pagina-kardex">
   <div class="titulo">
     <h1>Kardex</h1>
     <p>Cursos inscritos: <?= $totalInscritos ?></p>
   </div>
-  <form method="get" action="<?= BASE_URL ?>/index.php" class="panel formulario">
+  <form method="get" action="<?= BASE_URL ?>/index.php" class="panel formulario kardex-filtros">
     <input type="hidden" name="r" value="mis-inscripciones">
-    <div class="dos-columnas">
+    <div class="kardex-campos">
       <label class="campo">Inscripción desde
         <input type="date" name="desde" value="<?= htmlspecialchars($filtros['desde']) ?>">
       </label>
@@ -35,9 +35,18 @@ require dirname(__DIR__) . '/layout/header.php';
         </select>
       </label>
     </div>
-    <div class="dos-columnas">
-      <label><input type="checkbox" name="terminados" value="1" <?= $filtros['terminados'] === '1' ? 'checked' : '' ?>> Solo cursos terminados</label>
-      <label><input type="checkbox" name="activos" value="1" <?= $filtros['activos'] === '1' ? 'checked' : '' ?>> Solo cursos activos</label>
+    <div class="kardex-opciones">
+      <label>
+        <input type="checkbox" name="terminados" value="1"
+          <?= $filtros['terminados'] === '1' ? 'checked' : '' ?>>
+        Solo cursos terminados
+      </label>
+
+      <label>
+        <input type="checkbox" name="activos" value="1"
+          <?= $filtros['activos'] === '1' ? 'checked' : '' ?>>
+        Solo cursos activos
+      </label>
     </div>
     <div class="acciones-formulario">
       <button type="submit" class="boton">Filtrar</button>

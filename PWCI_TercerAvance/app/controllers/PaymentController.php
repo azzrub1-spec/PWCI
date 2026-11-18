@@ -144,7 +144,7 @@ final class PaymentController
                 },
                 'Tarjeta (Stripe)'
             );
-            $this->render($item, null, 'Compra con tarjeta confirmada por Stripe y registrada.');
+            $this->render($item, null, 'Tu compra se registró correctamente.');
         } catch (RuntimeException $error) {
             $this->render($item, $error instanceof PDOException
                 ? 'No se pudo registrar la compra. Recarga esta página para reintentar.'
@@ -174,7 +174,7 @@ final class PaymentController
                     throw new RuntimeException('PayPal todavía no confirma el importe completo. Puedes volver a cargar esta página para consultar la orden.');
                 }
             });
-            $this->render($item, null, 'Compra de prueba confirmada y registrada.');
+            $this->render($item, null, 'Tu compra se registró correctamente.');
         } catch (RuntimeException $error) {
             $this->render($item, $error instanceof PDOException
                 ? 'No se pudo registrar la compra. Recarga esta página para reintentar la misma orden.'
@@ -222,6 +222,35 @@ final class PaymentController
 
     private function render(?array $item, ?string $error = null, ?string $success = null): void
     {
+        // El detalle técnico queda en el registro, no en la pantalla de compra.
+        if ($error !== null) {
+            $mensajes = [
+                'La extensión cURL de PHP no está habilitada.' => 'El pago no está disponible en este momento.',
+                'Falta configurar PayPal Sandbox en config/paypal.local.php.' => 'El pago con PayPal no está disponible en este momento.',
+                'La configuración de PayPal Sandbox no es válida.' => 'El pago con PayPal no está disponible en este momento.',
+                'PayPal rechazó las credenciales Sandbox.' => 'El pago con PayPal no está disponible en este momento.',
+                'Habilita cURL de PHP para usar Stripe.' => 'El pago con tarjeta no está disponible en este momento.',
+                'Configura una clave secreta de prueba de Stripe en config/stripe.local.php.' => 'El pago con tarjeta no está disponible en este momento.',
+                'No fue posible conectar con PayPal Sandbox.' => 'No fue posible conectar con PayPal. Intenta nuevamente.',
+                'No fue posible completar la solicitud a PayPal.' => 'No fue posible completar la operación con PayPal. Intenta nuevamente.',
+                'PayPal no pudo procesar la operación de prueba.' => 'PayPal no pudo procesar la operación. Intenta nuevamente.',
+                'PayPal no devolvió un enlace de aprobación válido.' => 'No fue posible iniciar el pago con PayPal. Intenta nuevamente.',
+                'Stripe no devolvió una sesión de prueba válida.' => 'No fue posible iniciar el pago con tarjeta. Intenta nuevamente.',
+                'Stripe no confirmó el pago por el importe esperado.' => 'No se pudo verificar el pago. No se ha registrado la compra.',
+                'La orden de Stripe no corresponde a esta sesión.' => 'No se pudo identificar tu compra. Regresa al curso e inténtalo nuevamente.',
+            ];
+            $mensajePublico = $mensajes[$error] ?? null;
+            if (str_starts_with($error, 'XAMPP no pudo conectarse a Stripe (cURL ')) {
+                $mensajePublico = 'No fue posible conectar con el servicio de pago. Intenta nuevamente.';
+            } elseif (str_starts_with($error, 'Stripe rechazó la solicitud (HTTP ')) {
+                $mensajePublico = 'No fue posible completar la operación con tarjeta. Intenta nuevamente.';
+            }
+            if ($mensajePublico !== null) {
+                error_log('[KONNEKT pagos] ' . str_replace(["\r", "\n"], ' ', $error));
+                $error = $mensajePublico;
+            }
+        }
+
         View::render('pago/index', [
             'item' => $item,
             'error' => $error,

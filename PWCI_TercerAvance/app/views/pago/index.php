@@ -5,8 +5,8 @@ require dirname(__DIR__) . '/layout/header.php';
 
 <section class="pagina pagina-formulario">
   <div class="titulo">
-    <span class="etiqueta">PAGOS DE PRUEBA</span>
-    <h1>Compra de prueba</h1>
+    <span class="etiqueta">COMPRA</span>
+    <h1>Resumen de compra</h1>
   </div>
 
   <div class="panel">
@@ -19,7 +19,8 @@ require dirname(__DIR__) . '/layout/header.php';
 
     <?php if ($item !== null): ?>
       <p><strong><?= htmlspecialchars($item['titulo']) ?></strong></p>
-      <p>Total: $<?= number_format((float) $item['monto'], 2) ?> MXN. No se usa dinero real.</p>
+      <p>Total: $<?= number_format((float) $item['monto'], 2) ?> MXN.</p>
+      <p class="muted">Pago de prueba. No se realizará ningún cargo real.</p>
       <?php if ($success === null && !in_array($_GET['r'] ?? '', ['paypal-capturar', 'stripe-confirmar'], true)): ?>
         <form method="post" action="<?= BASE_URL ?>/index.php?r=paypal-crear">
           <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
@@ -27,17 +28,17 @@ require dirname(__DIR__) . '/layout/header.php';
           <?php if ($item['nivel'] !== null): ?>
             <input type="hidden" name="nivel" value="<?= (int) $item['nivel'] ?>">
           <?php endif; ?>
-          <button class="boton" type="submit">Continuar con PayPal Sandbox</button>
+          <button class="boton" type="submit">Continuar con PayPal</button>
         </form>
-        <h2>Tarjeta con Stripe</h2>
-        <p>Usa una tarjeta de prueba en la página de Stripe.</p>
+        <h2>Pago con tarjeta</h2>
+        <p>Para este pago, utiliza una tarjeta de prueba.</p>
         <form method="post" action="<?= BASE_URL ?>/index.php?r=stripe-crear">
           <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf) ?>">
           <input type="hidden" name="curso" value="<?= (int) $item['curso'] ?>">
           <?php if ($item['nivel'] !== null): ?>
             <input type="hidden" name="nivel" value="<?= (int) $item['nivel'] ?>">
           <?php endif; ?>
-          <button class="boton-secundario" type="submit">Continuar con Stripe en modo de prueba</button>
+          <button class="boton-secundario" type="submit">Continuar con tarjeta</button>
         </form>
       <?php endif; ?>
       <p><a href="<?= BASE_URL ?>/index.php?r=curso&amp;curso=<?= (int) $item['curso'] ?>">Volver al curso</a></p>

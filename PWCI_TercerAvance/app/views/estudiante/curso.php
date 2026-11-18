@@ -6,8 +6,8 @@ $nivelesComprados = array_map('intval', array_filter($compras, static fn ($id) =
 $freeLevels = array_filter($niveles, static fn (array $n): bool => (bool) $n['gratis'] && (float) $n['costo_nivel'] === 0.0);
 require dirname(__DIR__) . '/layout/header.php';
 ?>
-<section class="pagina">
-  <div class="titulo">
+<section class="pagina pagina-detalle-curso">
+  <div class="titulo curso-presentacion">
     <span class="etiqueta"><?= htmlspecialchars($curso['categoria']) ?></span>
     <h1><?= htmlspecialchars($curso['titulo']) ?></h1>
     <p>Instructor: <?= htmlspecialchars($curso['instructor']) ?></p>
@@ -57,7 +57,7 @@ require dirname(__DIR__) . '/layout/header.php';
       $free = isset($freeLevels[$index]);
       $puedeAbrir = $inscrito && ($free || $cursoComprado || in_array($levelId, $nivelesComprados, true));
       ?>
-      <article class="panel">
+      <article class="panel curso-nivel">
         <h3><?= (int) $nivel['orden'] ?>. <?= htmlspecialchars($nivel['titulo']) ?></h3>
         <?php if ($puedeAbrir): ?>
           <p><?= in_array($levelId, $completados, true) ? 'Completado' : 'Pendiente' ?></p>
@@ -114,7 +114,7 @@ require dirname(__DIR__) . '/layout/header.php';
   <?php endif; ?>
   <div class="lista-niveles">
     <?php foreach ($comentarios as $comentario): ?>
-      <article class="panel">
+      <article class="panel curso-comentario">
         <h3><?= htmlspecialchars($comentario['nombre'] . ' ' . $comentario['apellidos']) ?></h3>
         <p class="muted"><?= htmlspecialchars($comentario['fecha_creacion']) ?></p>
         <?php if ((bool) $comentario['eliminado']): ?>
